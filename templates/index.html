@@ -1,0 +1,2694 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Pothole Detection & Reporting</title>
+
+
+    <!-- Leaflet -->
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        /* =========================================
+           Theme Variables
+        ========================================= */
+
+        :root {
+
+            --background: #f4f6f8;
+            --surface: #ffffff;
+            --surface-secondary: #fafbfc;
+
+            --text: #212529;
+            --heading: #111827;
+            --muted: #667085;
+
+            --border: #dfe3e8;
+
+            --header: #1f2937;
+            --header-text: #ffffff;
+
+            --button: #1f2937;
+            --button-hover: #111827;
+
+            --success: #198754;
+
+            --high-bg: #f8d7da;
+            --high-text: #842029;
+
+            --medium-bg: #fff3cd;
+            --medium-text: #664d03;
+
+            --low-bg: #d1e7dd;
+            --low-text: #0f5132;
+
+        }
+
+
+        body.dark-mode {
+
+            --background: #111827;
+            --surface: #1f2937;
+            --surface-secondary: #18212f;
+
+            --text: #e5e7eb;
+            --heading: #f9fafb;
+            --muted: #a7b0bd;
+
+            --border: #374151;
+
+            --header: #0f172a;
+
+            --button: #e5e7eb;
+            --button-hover: #ffffff;
+
+        }
+
+
+        /* =========================================
+           Base
+        ========================================= */
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+
+        body {
+
+            margin: 0;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background:
+                var(--background);
+
+            color:
+                var(--text);
+
+            transition:
+                background 0.2s ease,
+                color 0.2s ease;
+
+        }
+
+
+        button,
+        input {
+
+            font-family: inherit;
+
+        }
+
+
+        /* =========================================
+           Header
+        ========================================= */
+
+        header {
+
+            background:
+                var(--header);
+
+            color:
+                var(--header-text);
+
+            padding:
+                16px 30px;
+
+        }
+
+
+        .header-content {
+
+            max-width: 1150px;
+
+            margin: 0 auto;
+
+        }
+
+
+        .header-row {
+
+            display: flex;
+
+            justify-content:
+                space-between;
+
+            align-items: center;
+
+            gap: 25px;
+
+        }
+
+
+        .brand {
+
+            min-width: 250px;
+
+        }
+
+
+        .brand h1 {
+
+            margin: 0;
+
+            font-size: 25px;
+
+        }
+
+
+        .brand p {
+
+            margin:
+                6px 0 0;
+
+            color:
+                #d1d5db;
+
+            font-size: 13px;
+
+        }
+
+
+        /* =========================================
+           Navigation
+        ========================================= */
+
+        .navigation {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 7px;
+
+            flex-wrap: wrap;
+
+        }
+
+
+        .nav-button {
+
+            background: transparent;
+
+            color: white;
+
+            border:
+                1px solid #4b5563;
+
+            padding:
+                8px 12px;
+
+            border-radius: 5px;
+
+            cursor: pointer;
+
+            font-size: 13px;
+
+        }
+
+
+        .nav-button:hover {
+
+            background:
+                #374151;
+
+        }
+
+
+        .nav-button.primary {
+
+            background: white;
+
+            color: #1f2937;
+
+            border-color: white;
+
+        }
+
+
+        .nav-button.primary:hover {
+
+            background: #e5e7eb;
+
+        }
+
+
+        /* =========================================
+           Container
+        ========================================= */
+
+        .container {
+
+            max-width: 1150px;
+
+            margin: 0 auto;
+
+            padding:
+                30px 20px;
+
+        }
+
+
+        /* =========================================
+           Sections
+        ========================================= */
+
+        .section {
+
+            background:
+                var(--surface);
+
+            padding:
+                24px;
+
+            margin-bottom:
+                25px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius:
+                8px;
+
+            box-shadow:
+                0 2px 8px rgba(
+                    0,
+                    0,
+                    0,
+                    0.05
+                );
+
+        }
+
+
+        .section h2 {
+
+            margin-top: 0;
+
+            color:
+                var(--heading);
+
+        }
+
+
+        .section-description {
+
+            color:
+                var(--muted);
+
+            margin-top:
+                -5px;
+
+            margin-bottom:
+                22px;
+
+            font-size: 14px;
+
+        }
+
+
+        /* =========================================
+           Upload
+        ========================================= */
+
+        .upload-area {
+
+            border:
+                2px dashed var(--border);
+
+            border-radius:
+                8px;
+
+            padding:
+                30px;
+
+            text-align:
+                center;
+
+            background:
+                var(--surface-secondary);
+
+        }
+
+
+        .upload-area p {
+
+            margin:
+                5px 0;
+
+            color:
+                var(--muted);
+
+        }
+
+
+        .upload-area input[type="file"] {
+
+            margin-top:
+                15px;
+
+            max-width:
+                100%;
+
+        }
+
+
+        /* =========================================
+           Image Preview
+        ========================================= */
+
+        .image-preview {
+
+            display: none;
+
+            margin-top:
+                20px;
+
+            text-align:
+                center;
+
+        }
+
+
+        .image-preview img {
+
+            max-width:
+                100%;
+
+            max-height:
+                300px;
+
+            border-radius:
+                6px;
+
+            border:
+                1px solid var(--border);
+
+        }
+
+
+        .preview-name {
+
+            margin-top:
+                8px;
+
+            color:
+                var(--muted);
+
+            font-size:
+                13px;
+
+        }
+
+
+        /* =========================================
+           Location
+        ========================================= */
+
+        .location-box {
+
+            margin-top:
+                22px;
+
+            padding:
+                18px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius:
+                7px;
+
+            background:
+                var(--surface-secondary);
+
+        }
+
+
+        .location-box h3 {
+
+            margin-top:
+                0;
+
+            margin-bottom:
+                10px;
+
+            font-size:
+                17px;
+
+            color:
+                var(--heading);
+
+        }
+
+
+        #locationStatus {
+
+            margin:
+                10px 0 0;
+
+            color:
+                var(--muted);
+
+            font-size:
+                14px;
+
+        }
+
+
+        /* =========================================
+           Buttons
+        ========================================= */
+
+        .primary-button {
+
+            background:
+                var(--button);
+
+            color:
+                var(--surface);
+
+            border:
+                none;
+
+            padding:
+                11px 20px;
+
+            border-radius:
+                6px;
+
+            cursor:
+                pointer;
+
+            font-size:
+                15px;
+
+            font-weight:
+                600;
+
+        }
+
+
+        body.dark-mode .primary-button {
+
+            color:
+                #111827;
+
+        }
+
+
+        .primary-button:hover {
+
+            background:
+                var(--button-hover);
+
+        }
+
+
+        .primary-button:disabled {
+
+            background:
+                #6b7280;
+
+            cursor:
+                not-allowed;
+
+        }
+
+
+        .secondary-button {
+
+            background:
+                var(--surface);
+
+            color:
+                var(--text);
+
+            border:
+                1px solid var(--border);
+
+            padding:
+                9px 16px;
+
+            border-radius:
+                6px;
+
+            cursor:
+                pointer;
+
+            font-size:
+                14px;
+
+        }
+
+
+        .secondary-button:hover {
+
+            background:
+                var(--surface-secondary);
+
+        }
+
+
+        .analyze-container {
+
+            margin-top:
+                22px;
+
+        }
+
+
+        /* =========================================
+           Result
+        ========================================= */
+
+        #result {
+
+            display:
+                none;
+
+        }
+
+
+        .result-header {
+
+            display:
+                flex;
+
+            justify-content:
+                space-between;
+
+            align-items:
+                center;
+
+            gap:
+                15px;
+
+            margin-bottom:
+                20px;
+
+        }
+
+
+        .result-header h2 {
+
+            margin:
+                0;
+
+        }
+
+
+        .result-success {
+
+            color:
+                var(--success);
+
+            font-size:
+                14px;
+
+            font-weight:
+                600;
+
+        }
+
+
+        .result-grid {
+
+            display:
+                grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap:
+                16px;
+
+        }
+
+
+        .result-item {
+
+            border:
+                1px solid var(--border);
+
+            padding:
+                16px;
+
+            border-radius:
+                7px;
+
+            background:
+                var(--surface-secondary);
+
+        }
+
+
+        .result-label {
+
+            display:
+                block;
+
+            color:
+                var(--muted);
+
+            font-size:
+                13px;
+
+            margin-bottom:
+                7px;
+
+        }
+
+
+        .result-value {
+
+            color:
+                var(--text);
+
+            font-size:
+                16px;
+
+            font-weight:
+                600;
+
+        }
+
+
+        .location-result {
+
+            grid-column:
+                1 / -1;
+
+        }
+
+
+        /* =========================================
+           Severity
+        ========================================= */
+
+        .severity-badge {
+
+            display:
+                inline-block;
+
+            padding:
+                5px 11px;
+
+            border-radius:
+                12px;
+
+            font-size:
+                13px;
+
+            font-weight:
+                700;
+
+        }
+
+
+        .severity-high {
+
+            background:
+                var(--high-bg);
+
+            color:
+                var(--high-text);
+
+        }
+
+
+        .severity-medium {
+
+            background:
+                var(--medium-bg);
+
+            color:
+                var(--medium-text);
+
+        }
+
+
+        .severity-low {
+
+            background:
+                var(--low-bg);
+
+            color:
+                var(--low-text);
+
+        }
+
+
+        /* =========================================
+           Messages
+        ========================================= */
+
+        .message-box {
+
+            padding:
+                18px;
+
+            border-radius:
+                7px;
+
+            background:
+                var(--surface-secondary);
+
+            border:
+                1px solid var(--border);
+
+        }
+
+
+        .message-box h3 {
+
+            margin-top:
+                0;
+
+            color:
+                var(--heading);
+
+        }
+
+
+        .error-message {
+
+            color:
+                var(--high-text);
+
+            background:
+                var(--high-bg);
+
+            border:
+                1px solid #f1aeb5;
+
+            padding:
+                15px;
+
+            border-radius:
+                7px;
+
+        }
+
+
+        /* =========================================
+           Map
+        ========================================= */
+
+        #map {
+
+            height:
+                500px;
+
+            width:
+                100%;
+
+            margin-top:
+                15px;
+
+            border-radius:
+                6px;
+
+            overflow:
+                hidden;
+
+        }
+
+
+        /* =========================================
+           Legend
+        ========================================= */
+
+        .map-legend {
+
+            background:
+                white;
+
+            padding:
+                10px;
+
+            line-height:
+                24px;
+
+            box-shadow:
+                0 0 8px rgba(
+                    0,
+                    0,
+                    0,
+                    0.3
+                );
+
+            border-radius:
+                5px;
+
+        }
+
+
+        .legend-title {
+
+            font-weight:
+                bold;
+
+            margin-bottom:
+                5px;
+
+        }
+
+
+        /* =========================================
+           Footer
+        ========================================= */
+
+        footer {
+
+            background:
+                var(--surface);
+
+            border-top:
+                1px solid var(--border);
+
+            margin-top:
+                20px;
+
+            padding:
+                35px 20px 25px;
+
+        }
+
+
+        .footer-content {
+
+            max-width:
+                1150px;
+
+            margin:
+                0 auto;
+
+        }
+
+
+        .footer-grid {
+
+            display:
+                grid;
+
+            grid-template-columns:
+                2fr 1fr 1fr 1fr;
+
+            gap:
+                30px;
+
+            padding-bottom:
+                25px;
+
+        }
+
+
+        .footer-column h3 {
+
+            margin-top:
+                0;
+
+            margin-bottom:
+                12px;
+
+            color:
+                var(--heading);
+
+            font-size:
+                15px;
+
+        }
+
+
+        .footer-column p {
+
+            color:
+                var(--muted);
+
+            font-size:
+                13px;
+
+            line-height:
+                1.6;
+
+            margin:
+                0;
+
+        }
+
+
+        .footer-link {
+
+            display:
+                block;
+
+            border:
+                none;
+
+            background:
+                none;
+
+            padding:
+                0;
+
+            margin:
+                0 0 9px;
+
+            color:
+                var(--muted);
+
+            cursor:
+                pointer;
+
+            font-size:
+                13px;
+
+            text-align:
+                left;
+
+        }
+
+
+        .footer-link:hover {
+
+            color:
+                var(--heading);
+
+        }
+
+
+        .footer-bottom {
+
+            border-top:
+                1px solid var(--border);
+
+            padding-top:
+                18px;
+
+            color:
+                var(--muted);
+
+            font-size:
+                12px;
+
+            text-align:
+                center;
+
+        }
+
+
+        /* =========================================
+           Toast
+        ========================================= */
+
+        #toast {
+
+            position:
+                fixed;
+
+            bottom:
+                25px;
+
+            left:
+                50%;
+
+            transform:
+                translateX(-50%)
+                translateY(20px);
+
+            background:
+                #1f2937;
+
+            color:
+                white;
+
+            padding:
+                12px 18px;
+
+            border-radius:
+                6px;
+
+            font-size:
+                13px;
+
+            opacity:
+                0;
+
+            pointer-events:
+                none;
+
+            transition:
+                opacity 0.2s ease,
+                transform 0.2s ease;
+
+            z-index:
+                9999;
+
+        }
+
+
+        #toast.show {
+
+            opacity:
+                1;
+
+            transform:
+                translateX(-50%)
+                translateY(0);
+
+        }
+
+
+        /* =========================================
+           Responsive
+        ========================================= */
+
+        @media (max-width: 850px) {
+
+            .header-row {
+
+                flex-direction:
+                    column;
+
+                align-items:
+                    flex-start;
+
+            }
+
+
+            .navigation {
+
+                width:
+                    100%;
+
+            }
+
+
+            .footer-grid {
+
+                grid-template-columns:
+                    repeat(2, 1fr);
+
+            }
+
+        }
+
+
+        @media (max-width: 700px) {
+
+            header {
+
+                padding:
+                    18px;
+
+            }
+
+
+            .brand h1 {
+
+                font-size:
+                    22px;
+
+            }
+
+
+            .container {
+
+                padding:
+                    20px 12px;
+
+            }
+
+
+            .section {
+
+                padding:
+                    18px;
+
+            }
+
+
+            .result-grid {
+
+                grid-template-columns:
+                    1fr;
+
+            }
+
+
+            .location-result {
+
+                grid-column:
+                    auto;
+
+            }
+
+
+            .footer-grid {
+
+                grid-template-columns:
+                    1fr;
+
+            }
+
+
+            #map {
+
+                height:
+                    400px;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================================
+         Header
+    ========================================== -->
+
+    <header>
+
+        <div class="header-content">
+
+            <div class="header-row">
+
+
+                <div class="brand">
+
+                    <h1>
+                        Pothole Detection & Reporting
+                    </h1>
+
+                    <p>
+                        AI-powered road damage detection,
+                        severity scoring and geotagged reporting.
+                    </p>
+
+                </div>
+
+
+                <nav class="navigation">
+
+                    <button
+                        class="nav-button"
+                        type="button"
+                        onclick="goHome()"
+                    >
+                        Home
+                    </button>
+
+
+                    <button
+                        class="nav-button"
+                        type="button"
+                        onclick="showAccountMessage('Profile')"
+                    >
+                        Profile
+                    </button>
+
+
+                    <button
+                        class="nav-button"
+                        type="button"
+                        onclick="showAccountMessage('Sign In')"
+                    >
+                        Sign In
+                    </button>
+
+
+                    <button
+                        class="nav-button primary"
+                        type="button"
+                        onclick="showAccountMessage('Sign Up')"
+                    >
+                        Sign Up
+                    </button>
+
+
+                    <button
+                        class="nav-button"
+                        type="button"
+                        onclick="goMunicipal()"
+                    >
+                        Municipal Portal
+                    </button>
+
+
+                    <button
+                        class="nav-button"
+                        id="themeButton"
+                        type="button"
+                        onclick="toggleDarkMode()"
+                    >
+                        🌙 Dark
+                    </button>
+
+                </nav>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <main class="container">
+
+
+        <!-- =========================================
+             Reporting Section
+        ========================================== -->
+
+        <div class="section">
+
+            <h2>
+                Report Road Damage
+            </h2>
+
+            <p class="section-description">
+                Upload an image of a road to analyze it for potholes.
+            </p>
+
+
+            <div class="upload-area">
+
+                <p>
+                    Select a road image from your device.
+                </p>
+
+                <input
+                    type="file"
+                    id="imageInput"
+                    accept="image/*"
+                >
+
+            </div>
+
+
+            <!-- Image Preview -->
+
+            <div
+                class="image-preview"
+                id="imagePreview"
+            >
+
+                <img
+                    id="previewImage"
+                    alt="Selected road image"
+                >
+
+                <div
+                    class="preview-name"
+                    id="previewName"
+                >
+                </div>
+
+            </div>
+
+
+            <!-- Location -->
+
+            <div class="location-box">
+
+                <h3>
+                    Report Location
+                </h3>
+
+                <p class="section-description">
+
+                    Your location can be attached to the report
+                    to help identify where the road damage was found.
+
+                </p>
+
+
+                <button
+                    id="locationButton"
+                    class="secondary-button"
+                    type="button"
+                >
+                    Get My Location
+                </button>
+
+
+                <p id="locationStatus">
+                    Location not detected.
+                </p>
+
+            </div>
+
+
+            <!-- Analyze -->
+
+            <div class="analyze-container">
+
+                <button
+                    id="analyzeButton"
+                    class="primary-button"
+                    type="button"
+                >
+                    Analyze Image
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================================
+             Result
+        ========================================== -->
+
+        <div
+            class="section"
+            id="result"
+        >
+        </div>
+
+
+        <!-- =========================================
+             Map
+        ========================================== -->
+
+        <div class="section">
+
+            <h2>
+                Reported Potholes
+            </h2>
+
+            <p class="section-description">
+
+                Reported potholes are displayed according
+                to their recorded GPS locations and severity.
+
+            </p>
+
+
+            <div id="map"></div>
+
+        </div>
+
+
+    </main>
+
+
+    <!-- =========================================
+         Footer
+    ========================================== -->
+
+    <footer>
+
+        <div class="footer-content">
+
+            <div class="footer-grid">
+
+
+                <div class="footer-column">
+
+                    <h3>
+                        Pothole Detection & Reporting
+                    </h3>
+
+                    <p>
+                        An AI-powered system for detecting
+                        potholes, estimating severity and
+                        associating road damage with geographic
+                        locations.
+                    </p>
+
+                </div>
+
+
+                <div class="footer-column">
+
+                    <h3>
+                        Information
+                    </h3>
+
+                    <button
+                        class="footer-link"
+                        onclick="showFooterMessage('About Us')"
+                    >
+                        About Us
+                    </button>
+
+                    <button
+                        class="footer-link"
+                        onclick="showFooterMessage('How It Works')"
+                    >
+                        How It Works
+                    </button>
+
+                    <button
+                        class="footer-link"
+                        onclick="showFooterMessage('Contact')"
+                    >
+                        Contact
+                    </button>
+
+                </div>
+
+
+                <div class="footer-column">
+
+                    <h3>
+                        Policies
+                    </h3>
+
+                    <button
+                        class="footer-link"
+                        onclick="showFooterMessage('Privacy')"
+                    >
+                        Privacy
+                    </button>
+
+                    <button
+                        class="footer-link"
+                        onclick="showFooterMessage('Terms')"
+                    >
+                        Terms of Use
+                    </button>
+
+                    <button
+                        class="footer-link"
+                        onclick="showFooterMessage('Accessibility')"
+                    >
+                        Accessibility
+                    </button>
+
+                </div>
+
+
+                <div class="footer-column">
+
+                    <h3>
+                        Technology
+                    </h3>
+
+                    <p>
+                        YOLO11<br>
+                        Flask<br>
+                        Python<br>
+                        SQLite<br>
+                        Leaflet<br>
+                        OpenStreetMap
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="footer-bottom">
+
+                Pothole Detection & Reporting · Project-1
+
+                <br><br>
+
+                Built using open-source technologies.
+                Map data © OpenStreetMap contributors.
+
+            </div>
+
+        </div>
+
+    </footer>
+
+
+    <!-- Toast -->
+
+    <div id="toast"></div>
+
+
+    <!-- Leaflet -->
+
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+
+
+    <script>
+
+        /* =========================================
+           DOM
+        ========================================= */
+
+        const imageInput =
+            document.getElementById("imageInput");
+
+        const analyzeButton =
+            document.getElementById("analyzeButton");
+
+        const resultDiv =
+            document.getElementById("result");
+
+        const locationButton =
+            document.getElementById("locationButton");
+
+        const locationStatus =
+            document.getElementById("locationStatus");
+
+        const imagePreview =
+            document.getElementById("imagePreview");
+
+        const previewImage =
+            document.getElementById("previewImage");
+
+        const previewName =
+            document.getElementById("previewName");
+
+        const themeButton =
+            document.getElementById("themeButton");
+
+        const toast =
+            document.getElementById("toast");
+
+
+        /* =========================================
+           Location
+        ========================================= */
+
+        let latitude = null;
+
+        let longitude = null;
+
+
+        /* =========================================
+           Toast
+        ========================================= */
+
+        let toastTimer = null;
+
+
+        function showToast(message) {
+
+            toast.textContent =
+                message;
+
+            toast.classList.add("show");
+
+
+            clearTimeout(toastTimer);
+
+
+            toastTimer =
+                setTimeout(
+                    () => {
+
+                        toast.classList.remove(
+                            "show"
+                        );
+
+                    },
+                    2500
+                );
+
+        }
+
+
+        /* =========================================
+           Navigation
+        ========================================= */
+
+        function goHome() {
+
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+
+        }
+
+
+        function goMunicipal() {
+
+            window.location.href =
+                "/municipal";
+
+        }
+
+
+        function showAccountMessage(
+            feature
+        ) {
+
+            showToast(
+                `${feature} will be available in the account system.`
+            );
+
+        }
+
+
+        function showFooterMessage(
+            feature
+        ) {
+
+            showToast(
+                `${feature} information will be added to the site.`
+            );
+
+        }
+
+
+        /* =========================================
+           Dark Mode
+        ========================================= */
+
+        function applySavedTheme() {
+
+            const savedTheme =
+                localStorage.getItem(
+                    "potholeTheme"
+                );
+
+
+            if (savedTheme === "dark") {
+
+                document.body.classList.add(
+                    "dark-mode"
+                );
+
+                themeButton.textContent =
+                    "☀ Light";
+
+            }
+
+            else {
+
+                document.body.classList.remove(
+                    "dark-mode"
+                );
+
+                themeButton.textContent =
+                    "🌙 Dark";
+
+            }
+
+        }
+
+
+        function toggleDarkMode() {
+
+            const isDark =
+                document.body.classList.toggle(
+                    "dark-mode"
+                );
+
+
+            if (isDark) {
+
+                localStorage.setItem(
+                    "potholeTheme",
+                    "dark"
+                );
+
+                themeButton.textContent =
+                    "☀ Light";
+
+            }
+
+            else {
+
+                localStorage.setItem(
+                    "potholeTheme",
+                    "light"
+                );
+
+                themeButton.textContent =
+                    "🌙 Dark";
+
+            }
+
+        }
+
+
+        applySavedTheme();
+
+
+        /* =========================================
+           Image Preview
+        ========================================= */
+
+        imageInput.addEventListener(
+            "change",
+            () => {
+
+                if (!imageInput.files.length) {
+
+                    imagePreview.style.display =
+                        "none";
+
+                    return;
+
+                }
+
+
+                const file =
+                    imageInput.files[0];
+
+
+                const reader =
+                    new FileReader();
+
+
+                reader.onload =
+                    function(event) {
+
+                        previewImage.src =
+                            event.target.result;
+
+                        previewName.textContent =
+                            file.name;
+
+                        imagePreview.style.display =
+                            "block";
+
+                    };
+
+
+                reader.readAsDataURL(file);
+
+            }
+        );
+
+
+        /* =========================================
+           Location
+        ========================================= */
+
+        locationButton.addEventListener(
+            "click",
+            () => {
+
+                if (!navigator.geolocation) {
+
+                    locationStatus.textContent =
+                        "Geolocation is not supported by this browser.";
+
+                    return;
+
+                }
+
+
+                locationStatus.textContent =
+                    "Getting your location...";
+
+
+                locationButton.disabled =
+                    true;
+
+
+                navigator.geolocation.getCurrentPosition(
+
+                    (position) => {
+
+                        latitude =
+                            position.coords.latitude;
+
+                        longitude =
+                            position.coords.longitude;
+
+
+                        locationStatus.textContent =
+                            `Location detected: ${
+                                latitude.toFixed(6)
+                            }, ${
+                                longitude.toFixed(6)
+                            }`;
+
+
+                        locationButton.disabled =
+                            false;
+
+                    },
+
+
+                    (error) => {
+
+                        latitude = null;
+
+                        longitude = null;
+
+
+                        locationStatus.textContent =
+                            "Unable to get your location. Please allow location access.";
+
+
+                        locationButton.disabled =
+                            false;
+
+
+                        console.error(error);
+
+                    }
+
+                );
+
+            }
+        );
+
+
+        /* =========================================
+           Analyze
+        ========================================= */
+
+        analyzeButton.addEventListener(
+            "click",
+            async () => {
+
+
+                if (!imageInput.files.length) {
+
+                    resultDiv.style.display =
+                        "block";
+
+
+                    resultDiv.innerHTML = `
+
+                        <div class="error-message">
+
+                            Please select an image first.
+
+                        </div>
+
+                    `;
+
+
+                    return;
+
+                }
+
+
+                const formData =
+                    new FormData();
+
+
+                formData.append(
+                    "image",
+                    imageInput.files[0]
+                );
+
+
+                if (
+                    latitude !== null &&
+                    longitude !== null
+                ) {
+
+                    formData.append(
+                        "latitude",
+                        latitude
+                    );
+
+
+                    formData.append(
+                        "longitude",
+                        longitude
+                    );
+
+                }
+
+
+                analyzeButton.disabled =
+                    true;
+
+
+                analyzeButton.textContent =
+                    "Analyzing...";
+
+
+                resultDiv.style.display =
+                    "block";
+
+
+                resultDiv.innerHTML = `
+
+                    <div class="message-box">
+
+                        <h3>
+                            Analyzing Image
+                        </h3>
+
+                        <p>
+                            Please wait while the AI model
+                            analyzes the uploaded road image.
+                        </p>
+
+                    </div>
+
+                `;
+
+
+                try {
+
+
+                    const response =
+                        await fetch(
+                            "/predict",
+                            {
+                                method: "POST",
+                                body: formData
+                            }
+                        );
+
+
+                    const data =
+                        await response.json();
+
+
+                    if (data.error) {
+
+                        resultDiv.innerHTML = `
+
+                            <div class="error-message">
+
+                                <strong>
+                                    Error:
+                                </strong>
+
+                                ${data.error}
+
+                            </div>
+
+                        `;
+
+
+                        return;
+
+                    }
+
+
+                    if (
+                        data.potholes_detected === 0
+                    ) {
+
+                        resultDiv.innerHTML = `
+
+                            <div class="message-box">
+
+                                <h3>
+                                    No Pothole Detected
+                                </h3>
+
+                                <p>
+                                    ${data.message}
+                                </p>
+
+                            </div>
+
+                        `;
+
+
+                        return;
+
+                    }
+
+
+                    let severityClass =
+                        "severity-low";
+
+
+                    if (
+                        data.overall_severity_level ===
+                        "HIGH"
+                    ) {
+
+                        severityClass =
+                            "severity-high";
+
+                    }
+
+                    else if (
+                        data.overall_severity_level ===
+                        "MEDIUM"
+                    ) {
+
+                        severityClass =
+                            "severity-medium";
+
+                    }
+
+
+                    resultDiv.innerHTML = `
+
+                        <div class="result-header">
+
+                            <div>
+
+                                <h2>
+                                    Analysis Result
+                                </h2>
+
+                                <span class="result-success">
+                                    Report submitted successfully
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="result-grid">
+
+
+                            <div class="result-item">
+
+                                <span class="result-label">
+                                    Potholes Detected
+                                </span>
+
+                                <span class="result-value">
+                                    ${data.potholes_detected}
+                                </span>
+
+                            </div>
+
+
+                            <div class="result-item">
+
+                                <span class="result-label">
+                                    Severity
+                                </span>
+
+                                <span
+                                    class="
+                                        severity-badge
+                                        ${severityClass}
+                                    "
+                                >
+                                    ${data.overall_severity_level}
+                                </span>
+
+                            </div>
+
+
+                            <div class="result-item">
+
+                                <span class="result-label">
+                                    Severity Score
+                                </span>
+
+                                <span class="result-value">
+                                    ${data.overall_severity_score}
+                                </span>
+
+                            </div>
+
+
+                            <div class="result-item">
+
+                                <span class="result-label">
+                                    Report ID
+                                </span>
+
+                                <span class="result-value">
+                                    #${data.report_id}
+                                </span>
+
+                            </div>
+
+
+                            <div class="result-item">
+
+                                <span class="result-label">
+                                    Latitude
+                                </span>
+
+                                <span class="result-value">
+                                    ${
+                                        data.latitude ??
+                                        "Not available"
+                                    }
+                                </span>
+
+                            </div>
+
+
+                            <div class="result-item">
+
+                                <span class="result-label">
+                                    Longitude
+                                </span>
+
+                                <span class="result-value">
+                                    ${
+                                        data.longitude ??
+                                        "Not available"
+                                    }
+                                </span>
+
+                            </div>
+
+
+                            <div
+                                class="
+                                    result-item
+                                    location-result
+                                "
+                            >
+
+                                <span class="result-label">
+                                    Location
+                                </span>
+
+                                <span class="result-value">
+                                    ${
+                                        data.location ||
+                                        "Not available"
+                                    }
+                                </span>
+
+                            </div>
+
+
+                        </div>
+
+                    `;
+
+
+                    /* =================================
+                       Add newly-created report marker
+                    ================================= */
+
+                    if (
+                        data.latitude !== null &&
+                        data.longitude !== null &&
+                        data.latitude !== undefined &&
+                        data.longitude !== undefined
+                    ) {
+
+                        const newLatitude =
+                            parseFloat(
+                                data.latitude
+                            );
+
+
+                        const newLongitude =
+                            parseFloat(
+                                data.longitude
+                            );
+
+
+                        if (
+                            !Number.isNaN(newLatitude) &&
+                            !Number.isNaN(newLongitude)
+                        ) {
+
+                            const newMarker =
+                                L.marker(
+                                    [
+                                        newLatitude,
+                                        newLongitude
+                                    ],
+                                    {
+                                        icon:
+                                            getSeverityIcon(
+                                                data.overall_severity_level
+                                            )
+                                    }
+                                ).addTo(map);
+
+
+                            newMarker.bindPopup(`
+
+                                <div
+                                    style="
+                                        min-width:220px;
+                                    "
+                                >
+
+                                    <h3
+                                        style="
+                                            margin-top:0;
+                                        "
+                                    >
+                                        Pothole Report
+                                    </h3>
+
+                                    <p>
+                                        <strong>
+                                            Report ID:
+                                        </strong>
+
+                                        ${data.report_id}
+                                    </p>
+
+                                    <p>
+                                        <strong>
+                                            Severity:
+                                        </strong>
+
+                                        ${data.overall_severity_level}
+                                    </p>
+
+                                    <p>
+                                        <strong>
+                                            Severity Score:
+                                        </strong>
+
+                                        ${data.overall_severity_score}
+                                    </p>
+
+                                    <p>
+                                        <strong>
+                                            Potholes:
+                                        </strong>
+
+                                        ${data.potholes_detected}
+                                    </p>
+
+                                    <p>
+                                        <strong>
+                                            Location:
+                                        </strong>
+
+                                        <br>
+
+                                        ${
+                                            data.location ||
+                                            "Not available"
+                                        }
+                                    </p>
+
+                                </div>
+
+                            `);
+
+
+                            map.flyTo(
+                                [
+                                    newLatitude,
+                                    newLongitude
+                                ],
+                                18
+                            );
+
+
+                            newMarker.openPopup();
+
+                        }
+
+                    }
+
+                }
+
+
+                catch (error) {
+
+                    resultDiv.innerHTML = `
+
+                        <div class="error-message">
+
+                            Could not connect to the server.
+
+                        </div>
+
+                    `;
+
+
+                    console.error(error);
+
+                }
+
+
+                finally {
+
+                    analyzeButton.disabled =
+                        false;
+
+
+                    analyzeButton.textContent =
+                        "Analyze Image";
+
+                }
+
+            }
+        );
+
+
+        /* =========================================
+           Map
+        ========================================= */
+
+        const map =
+            L.map("map").setView(
+                [12.9722, 79.1583],
+                15
+            );
+
+
+        L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                attribution:
+                    "&copy; OpenStreetMap contributors"
+            }
+        ).addTo(map);
+
+
+        /* =========================================
+           Map Legend
+        ========================================= */
+
+        const legend =
+            L.control({
+                position:
+                    "bottomright"
+            });
+
+
+        legend.onAdd =
+            function () {
+
+                const div =
+                    L.DomUtil.create(
+                        "div",
+                        "map-legend"
+                    );
+
+
+                div.innerHTML = `
+
+                    <div class="legend-title">
+                        Severity
+                    </div>
+
+                    <div>🔴 HIGH</div>
+
+                    <div>🟠 MEDIUM</div>
+
+                    <div>🟢 LOW</div>
+
+                `;
+
+
+                return div;
+
+            };
+
+
+        legend.addTo(map);
+
+
+        /* =========================================
+           Severity Icon
+        ========================================= */
+
+        function getSeverityIcon(
+            severity
+        ) {
+
+            let color =
+                "gray";
+
+
+            if (
+                severity === "HIGH"
+            ) {
+
+                color =
+                    "red";
+
+            }
+
+            else if (
+                severity === "MEDIUM"
+            ) {
+
+                color =
+                    "orange";
+
+            }
+
+            else if (
+                severity === "LOW"
+            ) {
+
+                color =
+                    "green";
+
+            }
+
+
+            return L.icon({
+
+                iconUrl:
+                    `https://maps.google.com/mapfiles/ms/icons/${color}-dot.png`,
+
+                iconSize:
+                    [32, 32],
+
+                iconAnchor:
+                    [16, 32],
+
+                popupAnchor:
+                    [0, -32]
+
+            });
+
+        }
+
+
+        /* =========================================
+           Existing Reports
+        ========================================= */
+
+        fetch("/reports")
+
+            .then(
+                response =>
+                    response.json()
+            )
+
+            .then(
+                reports => {
+
+                    reports.forEach(
+                        report => {
+
+                            if (
+                                report.latitude === null ||
+                                report.longitude === null ||
+                                report.latitude === undefined ||
+                                report.longitude === undefined
+                            ) {
+
+                                return;
+
+                            }
+
+
+                            const reportLatitude =
+                                parseFloat(
+                                    report.latitude
+                                );
+
+
+                            const reportLongitude =
+                                parseFloat(
+                                    report.longitude
+                                );
+
+
+                            if (
+                                Number.isNaN(
+                                    reportLatitude
+                                ) ||
+                                Number.isNaN(
+                                    reportLongitude
+                                )
+                            ) {
+
+                                return;
+
+                            }
+
+
+                            L.marker(
+
+                                [
+                                    reportLatitude,
+                                    reportLongitude
+                                ],
+
+                                {
+                                    icon:
+                                        getSeverityIcon(
+                                            report.overall_severity_level
+                                        )
+                                }
+
+                            )
+
+                            .addTo(map)
+
+                            .bindPopup(`
+
+                                <div
+                                    style="
+                                        min-width:220px;
+                                    "
+                                >
+
+                                    <h3
+                                        style="
+                                            margin-top:0;
+                                        "
+                                    >
+                                        Pothole Report
+                                    </h3>
+
+
+                                    <p>
+
+                                        <strong>
+                                            Report ID:
+                                        </strong>
+
+                                        ${report.id}
+
+                                    </p>
+
+
+                                    <p>
+
+                                        <strong>
+                                            Severity:
+                                        </strong>
+
+                                        ${report.overall_severity_level}
+
+                                    </p>
+
+
+                                    <p>
+
+                                        <strong>
+                                            Severity Score:
+                                        </strong>
+
+                                        ${report.overall_severity_score}
+
+                                    </p>
+
+
+                                    <p>
+
+                                        <strong>
+                                            Potholes:
+                                        </strong>
+
+                                        ${report.pothole_count}
+
+                                    </p>
+
+
+                                    <p>
+
+                                        <strong>
+                                            Location:
+                                        </strong>
+
+                                        <br>
+
+                                        ${
+                                            report.location ||
+                                            "Not available"
+                                        }
+
+                                    </p>
+
+
+                                    <p>
+
+                                        <strong>
+                                            Status:
+                                        </strong>
+
+                                        ${report.status}
+
+                                    </p>
+
+
+                                    <p>
+
+                                        <strong>
+                                            Reported:
+                                        </strong>
+
+                                        ${report.reported_at}
+
+                                    </p>
+
+
+                                    <p>
+
+                                        <strong>
+                                            Coordinates:
+                                        </strong>
+
+                                        <br>
+
+                                        ${reportLatitude},
+                                        ${reportLongitude}
+
+                                    </p>
+
+                                </div>
+
+                            `);
+
+                        }
+                    );
+
+                }
+            )
+
+            .catch(
+                error => {
+
+                    console.error(
+                        "Could not load reports:",
+                        error
+                    );
+
+                }
+            );
+
+    </script>
+
+
+</body>
+
+</html>

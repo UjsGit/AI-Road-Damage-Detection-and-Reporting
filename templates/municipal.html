@@ -1,0 +1,3168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Municipal Pothole Dashboard</title>
+
+
+    <!-- Leaflet -->
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        /* =========================================
+           Theme
+        ========================================= */
+
+        :root {
+
+            --background: #f4f6f8;
+
+            --surface: #ffffff;
+
+            --surface-secondary: #fafbfc;
+
+            --text: #212529;
+
+            --heading: #111827;
+
+            --muted: #6b7280;
+
+            --border: #dee2e6;
+
+            --header: #1f2937;
+
+            --button: #1f2937;
+
+            --button-hover: #111827;
+
+            --high-bg: #f8d7da;
+
+            --high-text: #842029;
+
+            --medium-bg: #fff3cd;
+
+            --medium-text: #664d03;
+
+            --low-bg: #d1e7dd;
+
+            --low-text: #0f5132;
+
+        }
+
+
+        body.dark-mode {
+
+            --background: #111827;
+
+            --surface: #1f2937;
+
+            --surface-secondary: #18212f;
+
+            --text: #e5e7eb;
+
+            --heading: #f9fafb;
+
+            --muted: #9ca3af;
+
+            --border: #374151;
+
+            --header: #0f172a;
+
+            --button: #e5e7eb;
+
+            --button-hover: #ffffff;
+
+        }
+
+
+        /* =========================================
+           Base
+        ========================================= */
+
+        body {
+
+            margin: 0;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background:
+                var(--background);
+
+            color:
+                var(--text);
+
+            transition:
+                background 0.2s ease,
+                color 0.2s ease;
+
+        }
+
+
+        button {
+
+            font-family: inherit;
+
+        }
+
+
+        /* =========================================
+           Header
+        ========================================= */
+
+        header {
+
+            background:
+                var(--header);
+
+            color:
+                white;
+
+            padding:
+                17px 30px;
+
+        }
+
+
+        .header-content {
+
+            max-width:
+                1200px;
+
+            margin:
+                0 auto;
+
+        }
+
+
+        .header-row {
+
+            display:
+                flex;
+
+            justify-content:
+                space-between;
+
+            align-items:
+                center;
+
+            gap:
+                25px;
+
+        }
+
+
+        .brand h1 {
+
+            margin:
+                0;
+
+            font-size:
+                25px;
+
+        }
+
+
+        .brand p {
+
+            margin:
+                6px 0 0;
+
+            color:
+                #d1d5db;
+
+            font-size:
+                13px;
+
+        }
+
+
+        /* =========================================
+           Navigation
+        ========================================= */
+
+        .navigation {
+
+            display:
+                flex;
+
+            gap:
+                7px;
+
+            align-items:
+                center;
+
+            flex-wrap:
+                wrap;
+
+        }
+
+
+        .nav-button {
+
+            background:
+                transparent;
+
+            color:
+                white;
+
+            border:
+                1px solid #4b5563;
+
+            padding:
+                8px 12px;
+
+            border-radius:
+                5px;
+
+            cursor:
+                pointer;
+
+            font-size:
+                13px;
+
+        }
+
+
+        .nav-button:hover {
+
+            background:
+                #374151;
+
+        }
+
+
+        .nav-button.primary {
+
+            background:
+                white;
+
+            color:
+                #1f2937;
+
+            border-color:
+                white;
+
+        }
+
+
+        /* =========================================
+           Container
+        ========================================= */
+
+        .container {
+
+            max-width:
+                1200px;
+
+            margin:
+                0 auto;
+
+            padding:
+                25px 20px;
+
+        }
+
+
+        /* =========================================
+           Statistics
+        ========================================= */
+
+        .stats {
+
+            display:
+                grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap:
+                18px;
+
+            margin-bottom:
+                25px;
+
+        }
+
+
+        .card {
+
+            background:
+                var(--surface);
+
+            padding:
+                20px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius:
+                8px;
+
+            box-shadow:
+                0 2px 8px rgba(
+                    0,
+                    0,
+                    0,
+                    0.06
+                );
+
+        }
+
+
+        .card h2 {
+
+            margin:
+                0;
+
+            font-size:
+                30px;
+
+            color:
+                var(--heading);
+
+        }
+
+
+        .card p {
+
+            margin:
+                8px 0 0;
+
+            color:
+                var(--muted);
+
+        }
+
+
+        /* =========================================
+           Sections
+        ========================================= */
+
+        .section {
+
+            background:
+                var(--surface);
+
+            padding:
+                22px;
+
+            margin-bottom:
+                25px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius:
+                8px;
+
+            box-shadow:
+                0 2px 8px rgba(
+                    0,
+                    0,
+                    0,
+                    0.05
+                );
+
+        }
+
+
+        .section h2 {
+
+            margin-top:
+                0;
+
+            color:
+                var(--heading);
+
+        }
+
+
+        /* =========================================
+           Map
+        ========================================= */
+
+        #map {
+
+            height:
+                500px;
+
+            border-radius:
+                6px;
+
+            overflow:
+                hidden;
+
+        }
+
+
+        /* =========================================
+           Selected Report
+        ========================================= */
+
+        #selectedReport {
+
+            display:
+                none;
+
+        }
+
+
+        .details-grid {
+
+            display:
+                grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap:
+                17px 30px;
+
+        }
+
+
+        .detail-item {
+
+            padding-bottom:
+                10px;
+
+            border-bottom:
+                1px solid var(--border);
+
+        }
+
+
+        .detail-label {
+
+            display:
+                block;
+
+            font-size:
+                13px;
+
+            color:
+                var(--muted);
+
+            margin-bottom:
+                5px;
+
+        }
+
+
+        .detail-value {
+
+            font-size:
+                15px;
+
+            color:
+                var(--text);
+
+            font-weight:
+                500;
+
+        }
+
+
+        .detail-location {
+
+            grid-column:
+                1 / -1;
+
+        }
+
+
+        /* =========================================
+           Status Controls
+        ========================================= */
+
+        .status-controls {
+
+            margin-top:
+                24px;
+
+            padding-top:
+                20px;
+
+            border-top:
+                1px solid var(--border);
+
+        }
+
+
+        .status-controls h3 {
+
+            margin-top:
+                0;
+
+            color:
+                var(--heading);
+
+            font-size:
+                16px;
+
+        }
+
+
+        .status-buttons {
+
+            display:
+                flex;
+
+            gap:
+                8px;
+
+            flex-wrap:
+                wrap;
+
+        }
+
+
+        .status-action {
+
+            border:
+                1px solid var(--border);
+
+            background:
+                var(--surface);
+
+            color:
+                var(--text);
+
+            padding:
+                9px 14px;
+
+            border-radius:
+                5px;
+
+            cursor:
+                pointer;
+
+            font-size:
+                13px;
+
+        }
+
+
+        .status-action:hover {
+
+            background:
+                var(--surface-secondary);
+
+        }
+
+
+        .status-action.selected {
+
+            background:
+                #1f2937;
+
+            color:
+                white;
+
+            border-color:
+                #1f2937;
+
+        }
+
+
+        body.dark-mode
+        .status-action.selected {
+
+            background:
+                #e5e7eb;
+
+            color:
+                #111827;
+
+            border-color:
+                #e5e7eb;
+
+        }
+
+
+        .status-note {
+
+            margin-top:
+                10px;
+
+            color:
+                var(--muted);
+
+            font-size:
+                12px;
+
+        }
+
+
+        /* =========================================
+           Before / After
+        ========================================= */
+
+        .repair-grid {
+
+            display:
+                grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap:
+                18px;
+
+        }
+
+
+        .repair-box {
+
+            min-height:
+                180px;
+
+            border:
+                1px dashed var(--border);
+
+            border-radius:
+                7px;
+
+            background:
+                var(--surface-secondary);
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            text-align:
+                center;
+
+            padding:
+                20px;
+
+            color:
+                var(--muted);
+
+        }
+
+
+        .repair-box strong {
+
+            display:
+                block;
+
+            color:
+                var(--heading);
+
+            margin-bottom:
+                8px;
+
+        }
+
+
+        /* =========================================
+           Notifications
+        ========================================= */
+
+        .notification-box {
+
+            display:
+                flex;
+
+            justify-content:
+                space-between;
+
+            align-items:
+                center;
+
+            gap:
+                20px;
+
+            padding:
+                16px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius:
+                7px;
+
+            background:
+                var(--surface-secondary);
+
+        }
+
+
+        .notification-title {
+
+            color:
+                var(--heading);
+
+            font-weight:
+                600;
+
+        }
+
+
+        .notification-description {
+
+            color:
+                var(--muted);
+
+            font-size:
+                13px;
+
+            margin-top:
+                5px;
+
+        }
+
+
+        .notification-button {
+
+            border:
+                1px solid var(--border);
+
+            background:
+                var(--surface);
+
+            color:
+                var(--text);
+
+            padding:
+                9px 14px;
+
+            border-radius:
+                5px;
+
+            cursor:
+                pointer;
+
+            white-space:
+                nowrap;
+
+        }
+
+
+        /* =========================================
+           Filters
+        ========================================= */
+
+        .filter-group {
+
+            display:
+                flex;
+
+            flex-wrap:
+                wrap;
+
+            gap:
+                8px;
+
+        }
+
+
+        .filter-button {
+
+            border:
+                1px solid var(--border);
+
+            background:
+                var(--surface);
+
+            color:
+                var(--text);
+
+            padding:
+                8px 14px;
+
+            border-radius:
+                5px;
+
+            cursor:
+                pointer;
+
+        }
+
+
+        .filter-button:hover {
+
+            background:
+                var(--surface-secondary);
+
+        }
+
+
+        .filter-button.active {
+
+            background:
+                #343a40;
+
+            color:
+                white;
+
+            border-color:
+                #343a40;
+
+        }
+
+
+        body.dark-mode
+        .filter-button.active {
+
+            background:
+                #e5e7eb;
+
+            color:
+                #111827;
+
+            border-color:
+                #e5e7eb;
+
+        }
+
+
+        /* =========================================
+           Reports Table
+        ========================================= */
+
+        .report-table-container {
+
+            overflow-x:
+                auto;
+
+        }
+
+
+        #reportsTable {
+
+            width:
+                100%;
+
+            border-collapse:
+                collapse;
+
+            margin-top:
+                15px;
+
+        }
+
+
+        #reportsTable th {
+
+            background:
+                var(--surface-secondary);
+
+            color:
+                var(--heading);
+
+            font-weight:
+                600;
+
+            padding:
+                12px;
+
+            text-align:
+                left;
+
+            border-bottom:
+                2px solid var(--border);
+
+        }
+
+
+        #reportsTable td {
+
+            padding:
+                12px;
+
+            border-bottom:
+                1px solid var(--border);
+
+            vertical-align:
+                top;
+
+        }
+
+
+        #reportsTable tbody tr {
+
+            cursor:
+                pointer;
+
+        }
+
+
+        #reportsTable tbody tr:hover {
+
+            background:
+                var(--surface-secondary);
+
+        }
+
+
+        /* =========================================
+           Badges
+        ========================================= */
+
+        .severity-badge,
+        .status-badge {
+
+            display:
+                inline-block;
+
+            padding:
+                4px 9px;
+
+            border-radius:
+                12px;
+
+            font-size:
+                13px;
+
+            font-weight:
+                600;
+
+        }
+
+
+        .severity-high {
+
+            background:
+                var(--high-bg);
+
+            color:
+                var(--high-text);
+
+        }
+
+
+        .severity-medium {
+
+            background:
+                var(--medium-bg);
+
+            color:
+                var(--medium-text);
+
+        }
+
+
+        .severity-low {
+
+            background:
+                var(--low-bg);
+
+            color:
+                var(--low-text);
+
+        }
+
+
+        .status-open {
+
+            background:
+                #e9ecef;
+
+            color:
+                #343a40;
+
+        }
+
+
+        .status-resolved {
+
+            background:
+                var(--low-bg);
+
+            color:
+                var(--low-text);
+
+        }
+
+
+        .status-progress {
+
+            background:
+                #cff4fc;
+
+            color:
+                #055160;
+
+        }
+
+
+        /* =========================================
+           Footer
+        ========================================= */
+
+        footer {
+
+            background:
+                var(--surface);
+
+            border-top:
+                1px solid var(--border);
+
+            padding:
+                35px 20px 25px;
+
+        }
+
+
+        .footer-content {
+
+            max-width:
+                1200px;
+
+            margin:
+                0 auto;
+
+        }
+
+
+        .footer-grid {
+
+            display:
+                grid;
+
+            grid-template-columns:
+                2fr 1fr 1fr 1fr;
+
+            gap:
+                30px;
+
+            padding-bottom:
+                25px;
+
+        }
+
+
+        .footer-column h3 {
+
+            margin-top:
+                0;
+
+            margin-bottom:
+                12px;
+
+            color:
+                var(--heading);
+
+            font-size:
+                15px;
+
+        }
+
+
+        .footer-column p {
+
+            margin:
+                0;
+
+            color:
+                var(--muted);
+
+            font-size:
+                13px;
+
+            line-height:
+                1.6;
+
+        }
+
+
+        .footer-link {
+
+            display:
+                block;
+
+            border:
+                none;
+
+            background:
+                none;
+
+            padding:
+                0;
+
+            margin:
+                0 0 9px;
+
+            color:
+                var(--muted);
+
+            cursor:
+                pointer;
+
+            font-size:
+                13px;
+
+            text-align:
+                left;
+
+        }
+
+
+        .footer-link:hover {
+
+            color:
+                var(--heading);
+
+        }
+
+
+        .footer-bottom {
+
+            border-top:
+                1px solid var(--border);
+
+            padding-top:
+                18px;
+
+            text-align:
+                center;
+
+            color:
+                var(--muted);
+
+            font-size:
+                12px;
+
+        }
+
+
+        /* =========================================
+           Toast
+        ========================================= */
+
+        #toast {
+
+            position:
+                fixed;
+
+            bottom:
+                25px;
+
+            left:
+                50%;
+
+            transform:
+                translateX(-50%)
+                translateY(20px);
+
+            background:
+                #1f2937;
+
+            color:
+                white;
+
+            padding:
+                12px 18px;
+
+            border-radius:
+                6px;
+
+            font-size:
+                13px;
+
+            opacity:
+                0;
+
+            pointer-events:
+                none;
+
+            transition:
+                opacity 0.2s ease,
+                transform 0.2s ease;
+
+            z-index:
+                9999;
+
+        }
+
+
+        #toast.show {
+
+            opacity:
+                1;
+
+            transform:
+                translateX(-50%)
+                translateY(0);
+
+        }
+
+
+        /* =========================================
+           Responsive
+        ========================================= */
+
+        @media (max-width: 850px) {
+
+            .header-row {
+
+                flex-direction:
+                    column;
+
+                align-items:
+                    flex-start;
+
+            }
+
+
+            .stats {
+
+                grid-template-columns:
+                    repeat(2, 1fr);
+
+            }
+
+
+            .footer-grid {
+
+                grid-template-columns:
+                    repeat(2, 1fr);
+
+            }
+
+        }
+
+
+        @media (max-width: 700px) {
+
+            .container {
+
+                padding:
+                    20px 12px;
+
+            }
+
+
+            .section {
+
+                padding:
+                    18px;
+
+            }
+
+
+            .stats {
+
+                grid-template-columns:
+                    1fr;
+
+            }
+
+
+            .details-grid {
+
+                grid-template-columns:
+                    1fr;
+
+            }
+
+
+            .detail-location {
+
+                grid-column:
+                    auto;
+
+            }
+
+
+            .repair-grid {
+
+                grid-template-columns:
+                    1fr;
+
+            }
+
+
+            .notification-box {
+
+                align-items:
+                    flex-start;
+
+                flex-direction:
+                    column;
+
+            }
+
+
+            .footer-grid {
+
+                grid-template-columns:
+                    1fr;
+
+            }
+
+
+            #map {
+
+                height:
+                    400px;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================================
+         Header
+    ========================================== -->
+
+    <header>
+
+        <div class="header-content">
+
+            <div class="header-row">
+
+
+                <div class="brand">
+
+                    <h1>
+                        Municipal Pothole Dashboard
+                    </h1>
+
+                    <p>
+                        Monitor, review and manage reported road damage.
+                    </p>
+
+                </div>
+
+
+                <nav class="navigation">
+
+                    <button
+                        class="nav-button"
+                        type="button"
+                        onclick="goDashboard()"
+                    >
+                        Dashboard
+                    </button>
+
+
+                    <button
+                        class="nav-button"
+                        type="button"
+                        onclick="scrollToReports()"
+                    >
+                        Reports
+                    </button>
+
+
+                    <button
+                        class="nav-button"
+                        type="button"
+                        onclick="scrollToMap()"
+                    >
+                        Map
+                    </button>
+
+
+                    <button
+                        class="nav-button"
+                        type="button"
+                        onclick="goCitizen()"
+                    >
+                        Citizen Portal
+                    </button>
+
+
+                    <button
+                        class="nav-button"
+                        type="button"
+                        onclick="showToast('Municipal account access will be connected later.')"
+                    >
+                        Sign In
+                    </button>
+
+
+                    <button
+                        class="nav-button primary"
+                        id="themeButton"
+                        type="button"
+                        onclick="toggleDarkMode()"
+                    >
+                        🌙 Dark
+                    </button>
+
+                </nav>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <main
+        class="container"
+        id="dashboard"
+    >
+
+
+        <!-- =========================================
+             Statistics
+        ========================================== -->
+
+        <div class="stats">
+
+            <div class="card">
+
+                <h2 id="totalReports">
+                    0
+                </h2>
+
+                <p>
+                    Total Reports
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h2 id="openReports">
+                    0
+                </h2>
+
+                <p>
+                    Open Reports
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h2 id="highReports">
+                    0
+                </h2>
+
+                <p>
+                    High Severity
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h2 id="resolvedReports">
+                    0
+                </h2>
+
+                <p>
+                    Resolved
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================================
+             Map
+        ========================================== -->
+
+        <div
+            class="section"
+            id="mapSection"
+        >
+
+            <h2>
+                Reported Potholes
+            </h2>
+
+            <div id="map"></div>
+
+        </div>
+
+
+        <!-- =========================================
+             Selected Report
+        ========================================== -->
+
+        <div
+            class="section"
+            id="selectedReport"
+        >
+
+            <h2>
+                Selected Report
+            </h2>
+
+
+            <div class="details-grid">
+
+
+                <div class="detail-item">
+
+                    <span class="detail-label">
+                        Report ID
+                    </span>
+
+                    <span
+                        class="detail-value"
+                        id="detailId"
+                    >
+                    </span>
+
+                </div>
+
+
+                <div class="detail-item">
+
+                    <span class="detail-label">
+                        Severity
+                    </span>
+
+                    <span
+                        class="detail-value"
+                        id="detailSeverity"
+                    >
+                    </span>
+
+                </div>
+
+
+                <div class="detail-item">
+
+                    <span class="detail-label">
+                        Severity Score
+                    </span>
+
+                    <span
+                        class="detail-value"
+                        id="detailScore"
+                    >
+                    </span>
+
+                </div>
+
+
+                <div class="detail-item">
+
+                    <span class="detail-label">
+                        Potholes Detected
+                    </span>
+
+                    <span
+                        class="detail-value"
+                        id="detailPotholes"
+                    >
+                    </span>
+
+                </div>
+
+
+                <div class="detail-item">
+
+                    <span class="detail-label">
+                        Current Status
+                    </span>
+
+                    <span
+                        class="detail-value"
+                        id="detailStatus"
+                    >
+                    </span>
+
+                </div>
+
+
+                <div class="detail-item">
+
+                    <span class="detail-label">
+                        Reported
+                    </span>
+
+                    <span
+                        class="detail-value"
+                        id="detailReported"
+                    >
+                    </span>
+
+                </div>
+
+
+                <div
+                    class="detail-item detail-location"
+                >
+
+                    <span class="detail-label">
+                        Location
+                    </span>
+
+                    <span
+                        class="detail-value"
+                        id="detailLocation"
+                    >
+                    </span>
+
+                </div>
+
+
+                <div class="detail-item">
+
+                    <span class="detail-label">
+                        Latitude
+                    </span>
+
+                    <span
+                        class="detail-value"
+                        id="detailLatitude"
+                    >
+                    </span>
+
+                </div>
+
+
+                <div class="detail-item">
+
+                    <span class="detail-label">
+                        Longitude
+                    </span>
+
+                    <span
+                        class="detail-value"
+                        id="detailLongitude"
+                    >
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- Status controls -->
+
+            <div class="status-controls">
+
+                <h3>
+                    Update Report Status
+                </h3>
+
+
+                <div class="status-buttons">
+
+                    <button
+                        class="status-action"
+                        data-status="Open"
+                        onclick="previewStatusChange('Open')"
+                    >
+                        Open
+                    </button>
+
+
+                    <button
+                        class="status-action"
+                        data-status="In Progress"
+                        onclick="previewStatusChange('In Progress')"
+                    >
+                        In Progress
+                    </button>
+
+
+                    <button
+                        class="status-action"
+                        data-status="Resolved"
+                        onclick="previewStatusChange('Resolved')"
+                    >
+                        Resolved
+                    </button>
+
+                </div>
+
+
+                <div class="status-note">
+
+                    Select a status to preview the municipal
+                    workflow.
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================================
+             Repair Evidence
+        ========================================== -->
+
+        <div class="section">
+
+            <h2>
+                Repair Evidence
+            </h2>
+
+            <p
+                class="section-description"
+            >
+                Before and after images can be associated
+                with a repair record.
+            </p>
+
+
+            <div class="repair-grid">
+
+
+                <div class="repair-box">
+
+                    <div>
+
+                        <strong>
+                            Before Repair
+                        </strong>
+
+                        Reported road-damage image
+
+                    </div>
+
+                </div>
+
+
+                <div class="repair-box">
+
+                    <div>
+
+                        <strong>
+                            After Repair
+                        </strong>
+
+                        Repair completion image
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================================
+             Notifications
+        ========================================== -->
+
+        <div class="section">
+
+            <h2>
+                Notifications
+            </h2>
+
+
+            <div class="notification-box">
+
+                <div>
+
+                    <div class="notification-title">
+
+                        Reporter Notification
+
+                    </div>
+
+                    <div class="notification-description">
+
+                        Notify the reporter when a municipal
+                        action is completed.
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    class="notification-button"
+                    type="button"
+                    onclick="showToast('Notification service will be connected later.')"
+                >
+                    Notify Reporter
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================================
+             Filters
+        ========================================== -->
+
+        <div class="section">
+
+            <h2>
+                Filters
+            </h2>
+
+
+            <div class="filter-group">
+
+
+                <button
+                    class="filter-button active"
+                    data-filter="All"
+                >
+                    All
+                </button>
+
+
+                <button
+                    class="filter-button"
+                    data-filter="HIGH"
+                >
+                    High
+                </button>
+
+
+                <button
+                    class="filter-button"
+                    data-filter="MEDIUM"
+                >
+                    Medium
+                </button>
+
+
+                <button
+                    class="filter-button"
+                    data-filter="LOW"
+                >
+                    Low
+                </button>
+
+
+                <button
+                    class="filter-button"
+                    data-filter="Open"
+                >
+                    Open
+                </button>
+
+
+                <button
+                    class="filter-button"
+                    data-filter="In Progress"
+                >
+                    In Progress
+                </button>
+
+
+                <button
+                    class="filter-button"
+                    data-filter="Resolved"
+                >
+                    Resolved
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================================
+             Reports
+        ========================================== -->
+
+        <div
+            class="section"
+            id="reportsSection"
+        >
+
+            <h2>
+                Reports
+            </h2>
+
+
+            <div class="report-table-container">
+
+                <table id="reportsTable">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                ID
+                            </th>
+
+                            <th>
+                                Location
+                            </th>
+
+                            <th>
+                                Severity
+                            </th>
+
+                            <th>
+                                Score
+                            </th>
+
+                            <th>
+                                Potholes
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                                Reported
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody
+                        id="reportsTableBody"
+                    >
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+    </main>
+
+
+    <!-- =========================================
+         Footer
+    ========================================== -->
+
+    <footer>
+
+        <div class="footer-content">
+
+            <div class="footer-grid">
+
+
+                <div class="footer-column">
+
+                    <h3>
+                        Municipal Road Monitoring
+                    </h3>
+
+                    <p>
+                        A civic technology interface for
+                        reviewing AI-assisted road damage
+                        reports and coordinating municipal
+                        response.
+                    </p>
+
+                </div>
+
+
+                <div class="footer-column">
+
+                    <h3>
+                        Information
+                    </h3>
+
+                    <button
+                        class="footer-link"
+                        onclick="showToast('About information will be added later.')"
+                    >
+                        About Us
+                    </button>
+
+                    <button
+                        class="footer-link"
+                        onclick="showToast('Workflow information will be added later.')"
+                    >
+                        How It Works
+                    </button>
+
+                    <button
+                        class="footer-link"
+                        onclick="showToast('Contact information will be added later.')"
+                    >
+                        Contact
+                    </button>
+
+                </div>
+
+
+                <div class="footer-column">
+
+                    <h3>
+                        Policies
+                    </h3>
+
+                    <button
+                        class="footer-link"
+                        onclick="showToast('Privacy information will be added later.')"
+                    >
+                        Privacy
+                    </button>
+
+                    <button
+                        class="footer-link"
+                        onclick="showToast('Terms information will be added later.')"
+                    >
+                        Terms of Use
+                    </button>
+
+                    <button
+                        class="footer-link"
+                        onclick="showToast('Accessibility information will be added later.')"
+                    >
+                        Accessibility
+                    </button>
+
+                </div>
+
+
+                <div class="footer-column">
+
+                    <h3>
+                        Technology
+                    </h3>
+
+                    <p>
+                        YOLO11<br>
+                        Flask<br>
+                        Python<br>
+                        SQLite<br>
+                        Leaflet<br>
+                        OpenStreetMap
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="footer-bottom">
+
+                Pothole Detection & Reporting · Project-1
+
+                <br><br>
+
+                Built using open-source technologies.
+                Map data © OpenStreetMap contributors.
+
+            </div>
+
+        </div>
+
+    </footer>
+
+
+    <!-- Toast -->
+
+    <div id="toast"></div>
+
+
+    <!-- Leaflet -->
+
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+
+
+    <script>
+
+        /* =========================================
+           Map
+        ========================================= */
+
+        const map =
+            L.map("map").setView(
+                [12.9722, 79.1583],
+                15
+            );
+
+
+        L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                attribution:
+                    "&copy; OpenStreetMap contributors"
+            }
+        ).addTo(map);
+
+
+        /* =========================================
+           Variables
+        ========================================= */
+
+        let allReports = [];
+
+        let markerByReportId = {};
+
+        let reportMarkers = [];
+
+        let selectedReport = null;
+
+
+        const toast =
+            document.getElementById(
+                "toast"
+            );
+
+
+        /* =========================================
+           Toast
+        ========================================= */
+
+        let toastTimer = null;
+
+
+        function showToast(message) {
+
+            toast.textContent =
+                message;
+
+            toast.classList.add(
+                "show"
+            );
+
+
+            clearTimeout(
+                toastTimer
+            );
+
+
+            toastTimer =
+                setTimeout(
+                    () => {
+
+                        toast.classList.remove(
+                            "show"
+                        );
+
+                    },
+                    2500
+                );
+
+        }
+
+
+        /* =========================================
+           Navigation
+        ========================================= */
+
+        function goDashboard() {
+
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+
+        }
+
+
+        function scrollToMap() {
+
+            document
+                .getElementById(
+                    "mapSection"
+                )
+                .scrollIntoView({
+                    behavior: "smooth"
+                });
+
+        }
+
+
+        function scrollToReports() {
+
+            document
+                .getElementById(
+                    "reportsSection"
+                )
+                .scrollIntoView({
+                    behavior: "smooth"
+                });
+
+        }
+
+
+        function goCitizen() {
+
+            window.location.href =
+                "/";
+
+        }
+
+
+        /* =========================================
+           Dark Mode
+        ========================================= */
+
+        const themeButton =
+            document.getElementById(
+                "themeButton"
+            );
+
+
+        function applySavedTheme() {
+
+            const savedTheme =
+                localStorage.getItem(
+                    "potholeTheme"
+                );
+
+
+            if (
+                savedTheme === "dark"
+            ) {
+
+                document.body.classList.add(
+                    "dark-mode"
+                );
+
+                themeButton.textContent =
+                    "☀ Light";
+
+            }
+
+            else {
+
+                document.body.classList.remove(
+                    "dark-mode"
+                );
+
+                themeButton.textContent =
+                    "🌙 Dark";
+
+            }
+
+        }
+
+
+        function toggleDarkMode() {
+
+            const isDark =
+                document.body.classList.toggle(
+                    "dark-mode"
+                );
+
+
+            if (isDark) {
+
+                localStorage.setItem(
+                    "potholeTheme",
+                    "dark"
+                );
+
+                themeButton.textContent =
+                    "☀ Light";
+
+            }
+
+            else {
+
+                localStorage.setItem(
+                    "potholeTheme",
+                    "light"
+                );
+
+                themeButton.textContent =
+                    "🌙 Dark";
+
+            }
+
+        }
+
+
+        applySavedTheme();
+
+
+        /* =========================================
+           Severity Icon
+        ========================================= */
+
+        function getSeverityIcon(
+            severity
+        ) {
+
+            let color =
+                "gray";
+
+
+            if (
+                severity === "HIGH"
+            ) {
+
+                color =
+                    "red";
+
+            }
+
+            else if (
+                severity === "MEDIUM"
+            ) {
+
+                color =
+                    "orange";
+
+            }
+
+            else if (
+                severity === "LOW"
+            ) {
+
+                color =
+                    "green";
+
+            }
+
+
+            return L.icon({
+
+                iconUrl:
+                    `https://maps.google.com/mapfiles/ms/icons/${color}-dot.png`,
+
+                iconSize:
+                    [32, 32],
+
+                iconAnchor:
+                    [16, 32],
+
+                popupAnchor:
+                    [0, -32]
+
+            });
+
+        }
+
+
+        /* =========================================
+           Show Selected Report
+        ========================================= */
+
+        function showReportDetails(
+            report
+        ) {
+
+            selectedReport =
+                report;
+
+
+            document.getElementById(
+                "selectedReport"
+            ).style.display =
+                "block";
+
+
+            document.getElementById(
+                "detailId"
+            ).textContent =
+                `#${report.id}`;
+
+
+            document.getElementById(
+                "detailSeverity"
+            ).textContent =
+                report.overall_severity_level ||
+                "N/A";
+
+
+            document.getElementById(
+                "detailScore"
+            ).textContent =
+                report.overall_severity_score ??
+                "N/A";
+
+
+            document.getElementById(
+                "detailPotholes"
+            ).textContent =
+                report.pothole_count ??
+                "0";
+
+
+            document.getElementById(
+                "detailStatus"
+            ).textContent =
+                report.status ||
+                "N/A";
+
+
+            document.getElementById(
+                "detailReported"
+            ).textContent =
+                report.reported_at ||
+                "N/A";
+
+
+            document.getElementById(
+                "detailLocation"
+            ).textContent =
+                report.location ||
+                "Not available";
+
+
+            document.getElementById(
+                "detailLatitude"
+            ).textContent =
+                report.latitude ??
+                "Not available";
+
+
+            document.getElementById(
+                "detailLongitude"
+            ).textContent =
+                report.longitude ??
+                "Not available";
+
+
+            /*
+             * Highlight current status button
+             */
+
+            document
+                .querySelectorAll(
+                    ".status-action"
+                )
+                .forEach(
+                    button => {
+
+                        button.classList.remove(
+                            "selected"
+                        );
+
+
+                        if (
+                            button.dataset.status ===
+                            report.status
+                        ) {
+
+                            button.classList.add(
+                                "selected"
+                            );
+
+                        }
+
+                    }
+                );
+
+        }
+
+
+        /* =========================================
+           Preview Status Change
+           IMPORTANT:
+           No backend request.
+           No database modification.
+        ========================================= */
+
+        function previewStatusChange(
+            newStatus
+        ) {
+
+            if (!selectedReport) {
+
+                showToast(
+                    "Select a report first."
+                );
+
+                return;
+
+            }
+
+
+            document
+                .querySelectorAll(
+                    ".status-action"
+                )
+                .forEach(
+                    button => {
+
+                        button.classList.remove(
+                            "selected"
+                        );
+
+
+                        if (
+                            button.dataset.status ===
+                            newStatus
+                        ) {
+
+                            button.classList.add(
+                                "selected"
+                            );
+
+                        }
+
+                    }
+                );
+
+
+            showToast(
+                `Status preview: ${newStatus}`
+            );
+
+        }
+
+
+        /* =========================================
+           Render Map Markers
+        ========================================= */
+
+        function renderMapMarkers(
+            reports
+        ) {
+
+            reportMarkers.forEach(
+                marker => {
+
+                    map.removeLayer(
+                        marker
+                    );
+
+                }
+            );
+
+
+            reportMarkers = [];
+
+            markerByReportId = {};
+
+
+            reports.forEach(
+                report => {
+
+                    if (
+                        report.latitude === null ||
+                        report.longitude === null ||
+                        report.latitude === undefined ||
+                        report.longitude === undefined
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    const latitude =
+                        parseFloat(
+                            report.latitude
+                        );
+
+
+                    const longitude =
+                        parseFloat(
+                            report.longitude
+                        );
+
+
+                    if (
+                        Number.isNaN(
+                            latitude
+                        ) ||
+                        Number.isNaN(
+                            longitude
+                        )
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    const marker =
+                        L.marker(
+
+                            [
+                                latitude,
+                                longitude
+                            ],
+
+                            {
+                                icon:
+                                    getSeverityIcon(
+                                        report.overall_severity_level
+                                    )
+                            }
+
+                        ).addTo(map);
+
+
+                    marker.bindPopup(`
+
+                        <div
+                            style="
+                                min-width:220px;
+                            "
+                        >
+
+                            <h3
+                                style="
+                                    margin-top:0;
+                                "
+                            >
+                                Report #${report.id}
+                            </h3>
+
+
+                            <p>
+                                <strong>
+                                    Severity:
+                                </strong>
+
+                                ${report.overall_severity_level}
+                            </p>
+
+
+                            <p>
+                                <strong>
+                                    Score:
+                                </strong>
+
+                                ${report.overall_severity_score}
+                            </p>
+
+
+                            <p>
+                                <strong>
+                                    Potholes:
+                                </strong>
+
+                                ${report.pothole_count}
+                            </p>
+
+
+                            <p>
+                                <strong>
+                                    Status:
+                                </strong>
+
+                                ${report.status}
+                            </p>
+
+
+                            <p>
+                                <strong>
+                                    Location:
+                                </strong>
+
+                                <br>
+
+                                ${
+                                    report.location ||
+                                    "Not available"
+                                }
+
+                            </p>
+
+
+                            <p>
+                                <strong>
+                                    Reported:
+                                </strong>
+
+                                ${report.reported_at}
+
+                            </p>
+
+
+                            <p>
+                                <strong>
+                                    Coordinates:
+                                </strong>
+
+                                <br>
+
+                                ${latitude.toFixed(6)},
+                                ${longitude.toFixed(6)}
+
+                            </p>
+
+                        </div>
+
+                    `);
+
+
+                    markerByReportId[
+                        report.id
+                    ] = marker;
+
+
+                    reportMarkers.push(
+                        marker
+                    );
+
+                }
+            );
+
+        }
+
+
+        /* =========================================
+           Render Reports Table
+        ========================================= */
+
+        function renderReports(
+            reports
+        ) {
+
+            const tableBody =
+                document.getElementById(
+                    "reportsTableBody"
+                );
+
+
+            tableBody.innerHTML =
+                "";
+
+
+            if (
+                reports.length === 0
+            ) {
+
+                const row =
+                    document.createElement(
+                        "tr"
+                    );
+
+
+                row.innerHTML = `
+
+                    <td
+                        colspan="7"
+                        style="
+                            text-align:center;
+                            color:var(--muted);
+                            padding:20px;
+                        "
+                    >
+                        No reports found.
+                    </td>
+
+                `;
+
+
+                tableBody.appendChild(
+                    row
+                );
+
+
+                return;
+
+            }
+
+
+            reports.forEach(
+                report => {
+
+                    const row =
+                        document.createElement(
+                            "tr"
+                        );
+
+
+                    const severityClass =
+
+                        report.overall_severity_level ===
+                        "HIGH"
+
+                            ? "severity-high"
+
+                            : report.overall_severity_level ===
+                              "MEDIUM"
+
+                                ? "severity-medium"
+
+                                : "severity-low";
+
+
+                    const statusClass =
+
+                        report.status ===
+                        "Resolved"
+
+                            ? "status-resolved"
+
+                            : report.status ===
+                              "In Progress"
+
+                                ? "status-progress"
+
+                                : "status-open";
+
+
+                    row.innerHTML = `
+
+                        <td>
+                            <strong>
+                                #${report.id}
+                            </strong>
+                        </td>
+
+
+                        <td>
+                            ${
+                                report.location ||
+                                "Not available"
+                            }
+                        </td>
+
+
+                        <td>
+
+                            <span
+                                class="
+                                    severity-badge
+                                    ${severityClass}
+                                "
+                            >
+
+                                ${
+                                    report.overall_severity_level
+                                }
+
+                            </span>
+
+                        </td>
+
+
+                        <td>
+                            ${report.overall_severity_score}
+                        </td>
+
+
+                        <td>
+                            ${report.pothole_count}
+                        </td>
+
+
+                        <td>
+
+                            <span
+                                class="
+                                    status-badge
+                                    ${statusClass}
+                                "
+                            >
+
+                                ${report.status}
+
+                            </span>
+
+                        </td>
+
+
+                        <td>
+                            ${report.reported_at}
+                        </td>
+
+                    `;
+
+
+                    /*
+                     * Row click
+                     */
+
+                    row.addEventListener(
+                        "click",
+                        () => {
+
+                            showReportDetails(
+                                report
+                            );
+
+
+                            const marker =
+                                markerByReportId[
+                                    report.id
+                                ];
+
+
+                            if (
+                                marker &&
+                                report.latitude !== null &&
+                                report.longitude !== null
+                            ) {
+
+                                const latitude =
+                                    parseFloat(
+                                        report.latitude
+                                    );
+
+
+                                const longitude =
+                                    parseFloat(
+                                        report.longitude
+                                    );
+
+
+                                if (
+                                    !Number.isNaN(
+                                        latitude
+                                    ) &&
+                                    !Number.isNaN(
+                                        longitude
+                                    )
+                                ) {
+
+                                    map.flyTo(
+                                        [
+                                            latitude,
+                                            longitude
+                                        ],
+                                        18
+                                    );
+
+
+                                    marker.openPopup();
+
+                                }
+
+                            }
+
+
+                            document
+                                .getElementById(
+                                    "selectedReport"
+                                )
+                                .scrollIntoView({
+                                    behavior:
+                                        "smooth",
+                                    block:
+                                        "start"
+                                });
+
+                        }
+                    );
+
+
+                    tableBody.appendChild(
+                        row
+                    );
+
+                }
+            );
+
+        }
+
+
+        /* =========================================
+           Filters
+        ========================================= */
+
+        function applyFilter(
+            filter
+        ) {
+
+            let filteredReports;
+
+
+            if (
+                filter === "All"
+            ) {
+
+                filteredReports =
+                    allReports;
+
+            }
+
+            else {
+
+                filteredReports =
+                    allReports.filter(
+                        report =>
+
+                            report.overall_severity_level ===
+                            filter ||
+
+                            report.status ===
+                            filter
+
+                    );
+
+            }
+
+
+            renderReports(
+                filteredReports
+            );
+
+
+            renderMapMarkers(
+                filteredReports
+            );
+
+        }
+
+
+        document
+            .querySelectorAll(
+                ".filter-button"
+            )
+            .forEach(
+                button => {
+
+                    button.addEventListener(
+                        "click",
+                        () => {
+
+                            document
+                                .querySelectorAll(
+                                    ".filter-button"
+                                )
+                                .forEach(
+                                    btn => {
+
+                                        btn.classList.remove(
+                                            "active"
+                                        );
+
+                                    }
+                                );
+
+
+                            button.classList.add(
+                                "active"
+                            );
+
+
+                            applyFilter(
+                                button.dataset.filter
+                            );
+
+                        }
+                    );
+
+                }
+            );
+
+
+        /* =========================================
+           Load Reports
+        ========================================= */
+
+        fetch("/reports")
+
+            .then(
+                response =>
+                    response.json()
+            )
+
+            .then(
+                reports => {
+
+                    allReports =
+                        reports;
+
+
+                    const total =
+                        reports.length;
+
+
+                    const open =
+                        reports.filter(
+                            report =>
+                                report.status ===
+                                "Open"
+                        ).length;
+
+
+                    const high =
+                        reports.filter(
+                            report =>
+                                report.overall_severity_level ===
+                                "HIGH"
+                        ).length;
+
+
+                    const resolved =
+                        reports.filter(
+                            report =>
+                                report.status ===
+                                "Resolved"
+                        ).length;
+
+
+                    document.getElementById(
+                        "totalReports"
+                    ).textContent =
+                        total;
+
+
+                    document.getElementById(
+                        "openReports"
+                    ).textContent =
+                        open;
+
+
+                    document.getElementById(
+                        "highReports"
+                    ).textContent =
+                        high;
+
+
+                    document.getElementById(
+                        "resolvedReports"
+                    ).textContent =
+                        resolved;
+
+
+                    renderReports(
+                        reports
+                    );
+
+
+                    renderMapMarkers(
+                        reports
+                    );
+
+                }
+            )
+
+            .catch(
+                error => {
+
+                    console.error(
+                        "Could not load dashboard reports:",
+                        error
+                    );
+
+                }
+            );
+
+    </script>
+
+
+</body>
+
+</html>

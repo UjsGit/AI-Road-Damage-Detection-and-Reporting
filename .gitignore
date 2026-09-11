@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+venv/
+.venv/
+
+# Local database
+database.db
+*.db
+*.sqlite
+*.sqlite3
+
+# User uploads
+uploads/
+
+# YOLO training outputs
+runs/
+
+# Datasets
+dataset/
+
+# Model weights
+models/*.pt
+*.pt
+
+# Local test/demo images
+test_images/
+
+# Generated visual checks
+visual_check/
+
+# Environment / secrets
+.env
+.env.*
+
+# IDE / editor files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
