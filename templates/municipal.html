@@ -2384,6 +2384,33 @@
 
             loadRepairEvidence(report.id);    
 
+            
+const beforeImage = document.getElementById("beforeRepairImage");
+const beforePlaceholder = document.getElementById("beforeRepairPlaceholder");
+
+beforeImage.style.display = "none";
+beforePlaceholder.style.display = "block";
+
+if (report.image_path) {
+    const filename = report.image_path.split(/[\\/]/).pop();
+
+    beforeImage.onload = () => {
+        beforeImage.style.display = "block";
+        beforePlaceholder.style.display = "none";
+    };
+
+    beforeImage.onerror = () => {
+        beforeImage.style.display = "none";
+        beforePlaceholder.style.display = "block";
+        beforePlaceholder.textContent = "Could not load the original image.";
+    };
+
+    beforeImage.src = `/uploads/${encodeURIComponent(filename)}`;
+} else {
+    beforePlaceholder.textContent = "No original image is available.";
+}
+
+
 
             document.getElementById(
                 "selectedReport"

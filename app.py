@@ -305,6 +305,7 @@ def get_reports():
     cursor.execute("""
         SELECT
             id,
+            image_path,
             latitude,
             longitude,
             location,
@@ -482,6 +483,10 @@ def get_repair_evidence(report_id):
 @app.route("/uploads/repair/<path:filename>")
 def serve_repair_image(filename):
     return send_from_directory(REPAIR_FOLDER, filename)
+
+@app.route("/uploads/<path:filename>")
+def serve_uploaded_image(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename)
 
 @app.route("/municipal")
 def municipal_dashboard():
