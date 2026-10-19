@@ -1719,60 +1719,65 @@
         </div>
 
 
-        <!-- =========================================
-             Repair Evidence
-        ========================================== -->
 
-        <div class="section">
+<!-- Repair Evidence -->
+<div class="section" id="repairEvidenceSection">
+    <h2>Repair Evidence</h2>
 
-            <h2>
-                Repair Evidence
-            </h2>
+    <p class="section-description">
+        Compare the original road damage with the submitted repair evidence.
+        Select a report before uploading evidence.
+    </p>
 
-            <p
-                class="section-description"
-            >
-                Before and after images can be associated
-                with a repair record.
-            </p>
-
-
-            <div class="repair-grid">
-
-
-                <div class="repair-box">
-
-                    <div>
-
-                        <strong>
-                            Before Repair
-                        </strong>
-
-                        Reported road-damage image
-
-                    </div>
-
-                </div>
-
-
-                <div class="repair-box">
-
-                    <div>
-
-                        <strong>
-                            After Repair
-                        </strong>
-
-                        Repair completion image
-
-                    </div>
-
-                </div>
-
-
+    <div class="repair-grid">
+        <div class="repair-box">
+            <div>
+                <strong>Before Repair</strong>
+                <img id="beforeRepairImage"
+                     alt="Original road damage"
+                     style="display:none; max-width:100%; max-height:280px; border-radius:8px;">
+                <p id="beforeRepairPlaceholder">
+                    Select a report to view its original image.
+                </p>
             </div>
-
         </div>
+
+        <div class="repair-box">
+            <div>
+                <strong>After Repair</strong>
+                <img id="afterRepairImage"
+                     alt="After-repair evidence"
+                     style="display:none; max-width:100%; max-height:280px; border-radius:8px;">
+                <p id="afterRepairPlaceholder">
+                    No repair evidence loaded.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top:20px;">
+        <label for="repairImage"><strong>Upload After-Repair Photo</strong></label>
+        <input type="file"
+               id="repairImage"
+               accept="image/jpeg,image/png,image/webp"
+               style="display:block; margin:12px 0;">
+
+        <label for="repairNotes"><strong>Repair Notes (optional)</strong></label>
+        <textarea id="repairNotes"
+                  rows="3"
+                  placeholder="Describe the repair work completed..."
+                  style="display:block; width:100%; box-sizing:border-box; margin:10px 0 14px; padding:10px;"></textarea>
+
+        <button type="button"
+                id="uploadRepairEvidenceButton"
+                onclick="uploadRepairEvidence()">
+            Upload Repair Evidence
+        </button>
+
+        <p id="repairEvidenceMessage" role="status"></p>
+    </div>
+</div>
+
 
 
         <!-- =========================================
@@ -2377,6 +2382,8 @@
             selectedReport =
                 report;
 
+            loadRepairEvidence(report.id);    
+
 
             document.getElementById(
                 "selectedReport"
@@ -2486,53 +2493,112 @@
            No database modification.
         ========================================= */
 
-        function previewStatusChange(
-            newStatus
-        ) {
+ async function previewStatusChange(newStatus) {
 
-            if (!selectedReport) {
+    if (!selectedReport) {
 
-                showToast(
-                    "Select a report first."
-                );
+        showToast(
+            "Select a report first."
+        );
 
-                return;
+        return;
+    }
 
+    try {
+
+        const response = await fetch(
+            `/reports/${selectedReport.id}/status`,
+            {
+                method: "PUT",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    status: newStatus
+                })
             }
+        );
 
 
-            document
-                .querySelectorAll(
-                    ".status-action"
-                )
-                .forEach(
-                    button => {
-
-                        button.classList.remove(
-                            "selected"
-                        );
+        const data = await response.json();
 
 
-                        if (
-                            button.dataset.status ===
-                            newStatus
-                        ) {
-
-                            button.classList.add(
-                                "selected"
-                            );
-
-                        }
-
-                    }
-                );
-
+        // The actual database update failed
+        if (!response.ok) {
 
             showToast(
-                `Status preview: ${newStatus}`
+                data.error || "Failed to update report status."
+            );
+
+            return;
+        }
+
+
+        // Database update succeeded
+        selectedReport.status = newStatus;
+
+
+        // Update selected button
+        document
+            .querySelectorAll(".status-action")
+            .forEach(button => {
+
+                button.classList.remove("selected");
+
+                if (
+                    button.dataset.status === newStatus
+                ) {
+
+                    button.classList.add("selected");
+
+                }
+
+            });
+
+
+        showToast(
+            `Status updated to ${newStatus}`
+        );
+
+
+        // Refresh dashboard data separately
+        try {
+
+            const reportsResponse =
+                await fetch("/reports");
+
+            allReports =
+                await reportsResponse.json();
+
+            renderStats();
+            renderReportsTable();
+            renderMap();
+
+        } catch (refreshError) {
+
+            console.error(
+                "Dashboard refresh error:",
+                refreshError
             );
 
         }
+
+    } catch (error) {
+
+        console.error(
+            "Status update error:",
+            error
+        );
+
+        showToast(
+            "Unable to update report status."
+        );
+
+    }
+
+}
 
 
         /* =========================================
@@ -3159,6 +3225,114 @@
 
                 }
             );
+
+async function uploadRepairEvidence() {
+    if (!selectedReport) {
+        alert("Please select a report first.");
+        return;
+    }
+
+    const imageInput = document.getElementById("repairImage");
+    const notesInput = document.getElementById("repairNotes");
+    const message = document.getElementById("repairEvidenceMessage");
+    const uploadButton = document.getElementById("uploadRepairEvidenceButton");
+
+    if (!imageInput.files.length) {
+        message.textContent = "Please choose an after-repair image.";
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("after_image", imageInput.files[0]);
+    formData.append("repair_notes", notesInput.value);
+
+    uploadButton.disabled = true;
+    message.textContent = "Uploading repair evidence...";
+
+    try {
+        const response = await fetch(
+            `/reports/${selectedReport.id}/repair-evidence`,
+            {
+                method: "POST",
+                body: formData
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || "Upload failed.");
+        }
+
+        message.textContent =
+            `Evidence uploaded successfully for report #${result.report_id}.`;
+
+        notesInput.value = "";
+        imageInput.value = "";
+
+    } catch (error) {
+        console.error("Repair evidence upload error:", error);
+        message.textContent = error.message || "Could not upload evidence.";
+    } finally {
+        uploadButton.disabled = false;
+    }
+}
+
+async function loadRepairEvidence(reportId) {
+    const afterImage = document.getElementById("afterRepairImage");
+    const afterPlaceholder = document.getElementById("afterRepairPlaceholder");
+    const notesInput = document.getElementById("repairNotes");
+    const message = document.getElementById("repairEvidenceMessage");
+
+    afterImage.style.display = "none";
+    afterPlaceholder.textContent = "Loading repair evidence...";
+    notesInput.value = "";
+
+    try {
+        const response = await fetch(
+            `/reports/${reportId}/repair-evidence`
+        );
+
+        const evidence = await response.json();
+
+        if (!response.ok) {
+            throw new Error(evidence.error || "Could not load repair evidence.");
+        }
+
+        if (evidence.after_image_path) {
+            const filename = evidence.after_image_path.split(/[\\/]/).pop();
+
+            afterImage.src =
+                `/uploads/repair/${encodeURIComponent(filename)}`;
+
+            afterImage.onload = () => {
+                afterImage.style.display = "block";
+                afterPlaceholder.style.display = "none";
+            };
+
+            afterImage.onerror = () => {
+                afterImage.style.display = "none";
+                afterPlaceholder.style.display = "block";
+                afterPlaceholder.textContent = "Could not display the saved image.";
+            };
+        } else {
+            afterPlaceholder.style.display = "block";
+            afterPlaceholder.textContent = "No repair evidence uploaded yet.";
+        }
+
+        notesInput.value = evidence.repair_notes || "";
+        message.textContent = evidence.updated_at
+            ? `Evidence last updated: ${evidence.updated_at}`
+            : "";
+
+    } catch (error) {
+        console.error("Error loading repair evidence:", error);
+        afterPlaceholder.style.display = "block";
+        afterPlaceholder.textContent = "Unable to load repair evidence.";
+    }
+}
+
+
 
     </script>
 

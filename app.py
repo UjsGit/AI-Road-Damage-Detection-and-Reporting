@@ -2,6 +2,10 @@ from flask import Flask, request, jsonify, render_template
 from pathlib import Path
 from ultralytics import YOLO
 from PIL import Image
+from werkzeug.utils import secure_filename
+
+from flask import send_from_directory
+
 import sqlite3
 import requests
 
@@ -19,6 +23,8 @@ MODEL_PATH = r"models\India_only_best.pt"
 DB_PATH = "database.db"
 UPLOAD_FOLDER = Path("uploads")
 
+REPAIR_FOLDER = UPLOAD_FOLDER / "repair"
+REPAIR_FOLDER.mkdir(parents=True, exist_ok=True)
 
 def reverse_geocode(latitude, longitude):
 
@@ -319,10 +325,163 @@ def get_reports():
 
     return jsonify(reports)
 
+@app.route("/reports/<int:report_id>/status", methods=["PUT"])
+def update_report_status(report_id):
+    data = request.get_json()
+
+    new_status = data.get("status")
+
+    allowed_statuses = ["Open", "In Progress", "Resolved"]
+
+    if new_status not in allowed_statuses:
+        return jsonify({
+            "error": "Invalid status"
+        }), 400
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "UPDATE reports SET status = ? WHERE id = ?",
+        (new_status, report_id)
+    )
+
+    if cursor.rowcount == 0:
+        conn.close()
+        return jsonify({
+            "error": "Report not found"
+        }), 404
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "message": "Report status updated successfully",
+        "report_id": report_id,
+        "status": new_status
+    })
+
+@app.route("/reports/<int:report_id>/repair-evidence", methods=["POST"])
+def upload_repair_evidence(report_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(
+            "SELECT id FROM reports WHERE id = ?",
+            (report_id,)
+        )
+
+        if cursor.fetchone() is None:
+            return jsonify({"error": "Report not found"}), 404
+
+        after_image = request.files.get("after_image")
+
+        if after_image is None or after_image.filename == "":
+            return jsonify({
+                "error": "After-repair image is required"
+            }), 400
+
+        repair_notes = request.form.get("repair_notes", "").strip()
+        filename = secure_filename(after_image.filename)
+
+        if not filename:
+            return jsonify({"error": "Invalid filename"}), 400
+
+        # Keep the original file extension, but use a unique name.
+        import uuid
+        extension = Path(filename).suffix.lower()
+
+        if extension not in {".jpg", ".jpeg", ".png", ".webp"}:
+            return jsonify({
+                "error": "Use a JPG, JPEG, PNG, or WEBP image"
+            }), 400
+
+        REPAIR_FOLDER.mkdir(parents=True, exist_ok=True)
+        saved_name = f"report_{report_id}_{uuid.uuid4().hex}{extension}"
+        image_path = REPAIR_FOLDER / saved_name
+
+        after_image.save(str(image_path))
+
+        cursor.execute("""
+            INSERT INTO repair_evidence (
+                report_id, after_image_path, repair_notes
+            )
+            VALUES (?, ?, ?)
+            ON CONFLICT(report_id) DO UPDATE SET
+                after_image_path = excluded.after_image_path,
+                repair_notes = excluded.repair_notes,
+                updated_at = CURRENT_TIMESTAMP
+        """, (report_id, str(image_path), repair_notes))
+
+        conn.commit()
+
+        return jsonify({
+            "message": "Repair evidence uploaded successfully",
+            "report_id": report_id,
+            "after_image_path": str(image_path),
+            "repair_notes": repair_notes
+        }), 201
+
+    except Exception:
+        conn.rollback()
+        app.logger.exception("Repair evidence upload failed")
+        return jsonify({
+            "error": "Could not save repair evidence"
+        }), 500
+
+    finally:
+        conn.close()
+
+@app.route("/reports/<int:report_id>/repair-evidence", methods=["GET"])
+def get_repair_evidence(report_id):
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+
+    try:
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "SELECT id FROM reports WHERE id = ?",
+            (report_id,)
+        )
+
+        if cursor.fetchone() is None:
+            return jsonify({"error": "Report not found"}), 404
+
+        cursor.execute("""
+            SELECT after_image_path, repair_notes, updated_at
+            FROM repair_evidence
+            WHERE report_id = ?
+        """, (report_id,))
+
+        evidence = cursor.fetchone()
+
+        if evidence is None:
+            return jsonify({
+                "report_id": report_id,
+                "after_image_path": None,
+                "repair_notes": "",
+                "updated_at": None
+            })
+
+        return jsonify({
+            "report_id": report_id,
+            "after_image_path": evidence["after_image_path"],
+            "repair_notes": evidence["repair_notes"] or "",
+            "updated_at": evidence["updated_at"]
+        })
+
+    finally:
+        conn.close()
 
 # --------------------------------------------------
 # Municipal Dashboard
 # --------------------------------------------------
+
+@app.route("/uploads/repair/<path:filename>")
+def serve_repair_image(filename):
+    return send_from_directory(REPAIR_FOLDER, filename)
 
 @app.route("/municipal")
 def municipal_dashboard():
