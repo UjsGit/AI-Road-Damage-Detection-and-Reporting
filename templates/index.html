@@ -1561,6 +1561,16 @@
 
     <script>
 
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return "";
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
         /* =========================================
            DOM
         ========================================= */
@@ -1997,7 +2007,7 @@
                                     Error:
                                 </strong>
 
-                                ${data.error}
+                                ${escapeHtml(data.error)}
 
                             </div>
 
@@ -2022,7 +2032,7 @@
                                 </h3>
 
                                 <p>
-                                    ${data.message}
+                                    ${escapeHtml(data.message)}
                                 </p>
 
                             </div>
@@ -2089,7 +2099,7 @@
                                 </span>
 
                                 <span class="result-value">
-                                    ${data.potholes_detected}
+                                    ${escapeHtml(data.potholes_detected)}
                                 </span>
 
                             </div>
@@ -2107,7 +2117,7 @@
                                         ${severityClass}
                                     "
                                 >
-                                    ${data.overall_severity_level}
+                                    ${escapeHtml(data.overall_severity_level)}
                                 </span>
 
                             </div>
@@ -2120,7 +2130,7 @@
                                 </span>
 
                                 <span class="result-value">
-                                    ${data.overall_severity_score}
+                                    ${escapeHtml(data.overall_severity_score)}
                                 </span>
 
                             </div>
@@ -2133,7 +2143,7 @@
                                 </span>
 
                                 <span class="result-value">
-                                    #${data.report_id}
+                                    #${escapeHtml(data.report_id)}
                                 </span>
 
                             </div>
@@ -2146,10 +2156,10 @@
                                 </span>
 
                                 <span class="result-value">
-                                    ${
+                                    ${escapeHtml(
                                         data.latitude ??
                                         "Not available"
-                                    }
+                                    )}
                                 </span>
 
                             </div>
@@ -2162,10 +2172,10 @@
                                 </span>
 
                                 <span class="result-value">
-                                    ${
+                                    ${escapeHtml(
                                         data.longitude ??
                                         "Not available"
-                                    }
+                                    )}
                                 </span>
 
                             </div>
@@ -2183,10 +2193,10 @@
                                 </span>
 
                                 <span class="result-value">
-                                    ${
+                                    ${escapeHtml(
                                         data.location ||
                                         "Not available"
-                                    }
+                                    )}
                                 </span>
 
                             </div>
@@ -2261,7 +2271,7 @@
                                             Report ID:
                                         </strong>
 
-                                        ${data.report_id}
+                                        ${escapeHtml(data.report_id)}
                                     </p>
 
                                     <p>
@@ -2269,7 +2279,7 @@
                                             Severity:
                                         </strong>
 
-                                        ${data.overall_severity_level}
+                                        ${escapeHtml(data.overall_severity_level)}
                                     </p>
 
                                     <p>
@@ -2277,7 +2287,7 @@
                                             Severity Score:
                                         </strong>
 
-                                        ${data.overall_severity_score}
+                                        ${escapeHtml(data.overall_severity_score)}
                                     </p>
 
                                     <p>
@@ -2285,7 +2295,7 @@
                                             Potholes:
                                         </strong>
 
-                                        ${data.potholes_detected}
+                                        ${escapeHtml(data.potholes_detected)}
                                     </p>
 
                                     <p>
@@ -2295,10 +2305,10 @@
 
                                         <br>
 
-                                        ${
+                                        ${escapeHtml(
                                             data.location ||
                                             "Not available"
-                                        }
+                                        )}
                                     </p>
 
                                 </div>
@@ -2576,7 +2586,7 @@
                                             Report ID:
                                         </strong>
 
-                                        ${report.id}
+                                        ${escapeHtml(report.id)}
 
                                     </p>
 
@@ -2587,7 +2597,7 @@
                                             Severity:
                                         </strong>
 
-                                        ${report.overall_severity_level}
+                                        ${escapeHtml(report.overall_severity_level || "N/A")}
 
                                     </p>
 
@@ -2598,7 +2608,7 @@
                                             Severity Score:
                                         </strong>
 
-                                        ${report.overall_severity_score}
+                                        ${escapeHtml(report.overall_severity_score ?? "N/A")}
 
                                     </p>
 
@@ -2609,7 +2619,7 @@
                                             Potholes:
                                         </strong>
 
-                                        ${report.pothole_count}
+                                        ${escapeHtml(report.pothole_count ?? "0")}
 
                                     </p>
 
@@ -2622,10 +2632,10 @@
 
                                         <br>
 
-                                        ${
+                                        ${escapeHtml(
                                             report.location ||
                                             "Not available"
-                                        }
+                                        )}
 
                                     </p>
 
@@ -2636,7 +2646,7 @@
                                             Status:
                                         </strong>
 
-                                        ${report.status}
+                                        ${escapeHtml(report.status || "N/A")}
 
                                     </p>
 
@@ -2647,7 +2657,7 @@
                                             Reported:
                                         </strong>
 
-                                        ${report.reported_at}
+                                        ${escapeHtml(report.reported_at || "N/A")}
 
                                     </p>
 

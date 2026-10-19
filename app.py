@@ -3,6 +3,7 @@ from pathlib import Path
 from ultralytics import YOLO
 from PIL import Image
 from werkzeug.utils import secure_filename
+import uuid
 
 from flask import send_from_directory
 
@@ -22,6 +23,7 @@ app = Flask(__name__)
 MODEL_PATH = r"models\India_only_best.pt"
 DB_PATH = "database.db"
 UPLOAD_FOLDER = Path("uploads")
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
 REPAIR_FOLDER = UPLOAD_FOLDER / "repair"
 REPAIR_FOLDER.mkdir(parents=True, exist_ok=True)
@@ -94,11 +96,22 @@ def predict():
 
     image = request.files["image"]
 
-    if image.filename == "":
+    if not image or image.filename == "":
         return jsonify({
             "error": "No image selected"
         }), 400
 
+    clean_filename = secure_filename(image.filename)
+    if not clean_filename:
+        return jsonify({
+            "error": "Invalid filename"
+        }), 400
+
+    extension = Path(clean_filename).suffix.lower()
+    if extension not in ALLOWED_EXTENSIONS:
+        return jsonify({
+            "error": "Invalid file type. Allowed formats: JPG, JPEG, PNG, WEBP"
+        }), 400
 
     # Get location information
     latitude = request.form.get("latitude")
@@ -114,20 +127,26 @@ def predict():
     # Save uploaded image
     # --------------------------------------------------
 
-    UPLOAD_FOLDER.mkdir(exist_ok=True)
-
-    image_path = UPLOAD_FOLDER / image.filename
-    image.save(image_path)
+    UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
+    saved_name = f"upload_{uuid.uuid4().hex}{extension}"
+    image_path = UPLOAD_FOLDER / saved_name
+    image.save(str(image_path))
 
 
     # --------------------------------------------------
     # Get image dimensions
     # --------------------------------------------------
 
-    image_obj = Image.open(image_path)
-
-    image_width, image_height = image_obj.size
-    image_area = image_width * image_height
+    try:
+        image_obj = Image.open(image_path)
+        image_width, image_height = image_obj.size
+        image_area = image_width * image_height
+    except Exception:
+        if image_path.exists():
+            image_path.unlink()
+        return jsonify({
+            "error": "Uploaded file is not a valid image"
+        }), 400
 
 
     # --------------------------------------------------
@@ -212,72 +231,76 @@ def predict():
     # --------------------------------------------------
 
     conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-
-
-    cursor.execute("""
-    INSERT INTO reports (
-        image_path,
-        latitude,
-        longitude,
-        location,
-        overall_severity_score,
-        overall_severity_level,
-        pothole_count,
-        status
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-""", (
-    str(image_path),
-    latitude,
-    longitude,
-    location,
-    overall_score,
-    overall_level,
-    len(detections),
-    "Open"
-))
-
-
-    report_id = cursor.lastrowid
-
-
-    # --------------------------------------------------
-    # Save individual detections
-    # --------------------------------------------------
-
-    for detection, box in zip(detections, results[0].boxes):
-
-        x1, y1, x2, y2 = box.xyxy[0].tolist()
+    try:
+        cursor = conn.cursor()
 
         cursor.execute("""
-            INSERT INTO detections (
+            INSERT INTO reports (
+                image_path,
+                latitude,
+                longitude,
+                location,
+                overall_severity_score,
+                overall_severity_level,
+                pothole_count,
+                status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            str(image_path),
+            latitude,
+            longitude,
+            location,
+            overall_score,
+            overall_level,
+            len(detections),
+            "Open"
+        ))
+
+        report_id = cursor.lastrowid
+
+        # --------------------------------------------------
+        # Save individual detections
+        # --------------------------------------------------
+
+        for detection, box in zip(detections, results[0].boxes):
+
+            x1, y1, x2, y2 = box.xyxy[0].tolist()
+
+            cursor.execute("""
+                INSERT INTO detections (
+                    report_id,
+                    damage_type,
+                    confidence,
+                    severity_score,
+                    severity_level,
+                    x1,
+                    y1,
+                    x2,
+                    y2
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
                 report_id,
-                damage_type,
-                confidence,
-                severity_score,
-                severity_level,
+                detection["damage_type"],
+                detection["confidence"],
+                detection["severity_score"],
+                detection["severity_level"],
                 x1,
                 y1,
                 x2,
                 y2
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            report_id,
-            detection["damage_type"],
-            detection["confidence"],
-            detection["severity_score"],
-            detection["severity_level"],
-            x1,
-            y1,
-            x2,
-            y2
-        ))
+            ))
 
-
-    conn.commit()
-    conn.close()
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        app.logger.exception("Failed to save report to database")
+        return jsonify({
+            "error": "Failed to save report to database"
+        }), 500
+    finally:
+        conn.close()
 
 
     # --------------------------------------------------
@@ -285,50 +308,52 @@ def predict():
     # --------------------------------------------------
 
     return jsonify({
-    "report_id": report_id,
-    "potholes_detected": len(detections),
-    "overall_severity_score": overall_score,
-    "overall_severity_level": overall_level,
-    "latitude": latitude,
-    "longitude": longitude,
-    "location": location,
-    "detections": detections
-})
+        "report_id": report_id,
+        "potholes_detected": len(detections),
+        "overall_severity_score": overall_score,
+        "overall_severity_level": overall_level,
+        "latitude": latitude,
+        "longitude": longitude,
+        "location": location,
+        "detections": detections
+    })
 
 @app.route("/reports")
 def get_reports():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
 
-    cursor = conn.cursor()
+    try:
+        cursor = conn.cursor()
 
-    cursor.execute("""
-        SELECT
-            id,
-            image_path,
-            latitude,
-            longitude,
-            location,
-            overall_severity_score,
-            overall_severity_level,
-            pothole_count,
-            status,
-            reported_at
-        FROM reports
-        WHERE latitude IS NOT NULL
-          AND longitude IS NOT NULL
-        ORDER BY reported_at DESC
-    """)
+        cursor.execute("""
+            SELECT
+                id,
+                image_path,
+                latitude,
+                longitude,
+                location,
+                overall_severity_score,
+                overall_severity_level,
+                pothole_count,
+                status,
+                reported_at
+            FROM reports
+            ORDER BY reported_at DESC
+        """)
 
-    reports = [dict(row) for row in cursor.fetchall()]
-
-    conn.close()
-
-    return jsonify(reports)
+        reports = [dict(row) for row in cursor.fetchall()]
+        return jsonify(reports)
+    finally:
+        conn.close()
 
 @app.route("/reports/<int:report_id>/status", methods=["PUT"])
 def update_report_status(report_id):
-    data = request.get_json()
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({
+            "error": "Invalid request body"
+        }), 400
 
     new_status = data.get("status")
 
@@ -340,27 +365,34 @@ def update_report_status(report_id):
         }), 400
 
     conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+    try:
+        cursor = conn.cursor()
 
-    cursor.execute(
-        "UPDATE reports SET status = ? WHERE id = ?",
-        (new_status, report_id)
-    )
+        cursor.execute(
+            "UPDATE reports SET status = ? WHERE id = ?",
+            (new_status, report_id)
+        )
 
-    if cursor.rowcount == 0:
-        conn.close()
+        if cursor.rowcount == 0:
+            return jsonify({
+                "error": "Report not found"
+            }), 404
+
+        conn.commit()
+
         return jsonify({
-            "error": "Report not found"
-        }), 404
-
-    conn.commit()
-    conn.close()
-
-    return jsonify({
-        "message": "Report status updated successfully",
-        "report_id": report_id,
-        "status": new_status
-    })
+            "message": "Report status updated successfully",
+            "report_id": report_id,
+            "status": new_status
+        })
+    except Exception:
+        conn.rollback()
+        app.logger.exception("Failed to update status")
+        return jsonify({
+            "error": "Failed to update report status"
+        }), 500
+    finally:
+        conn.close()
 
 @app.route("/reports/<int:report_id>/repair-evidence", methods=["POST"])
 def upload_repair_evidence(report_id):
@@ -390,10 +422,9 @@ def upload_repair_evidence(report_id):
             return jsonify({"error": "Invalid filename"}), 400
 
         # Keep the original file extension, but use a unique name.
-        import uuid
         extension = Path(filename).suffix.lower()
 
-        if extension not in {".jpg", ".jpeg", ".png", ".webp"}:
+        if extension not in ALLOWED_EXTENSIONS:
             return jsonify({
                 "error": "Use a JPG, JPEG, PNG, or WEBP image"
             }), 400
