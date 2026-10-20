@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register — Pothole Detection & Reporting</title>
+    <style>
+        * { box-sizing: border-box; }
+        :root {
+            --background: #f4f6f8;
+            --surface: #ffffff;
+            --text: #212529;
+            --heading: #111827;
+            --muted: #667085;
+            --border: #dfe3e8;
+            --button: #1f2937;
+            --button-hover: #111827;
+            --danger-bg: #f8d7da;
+            --danger-text: #842029;
+            --success-bg: #d1e7dd;
+            --success-text: #0f5132;
+        }
+        body.dark-mode {
+            --background: #111827;
+            --surface: #1f2937;
+            --text: #e5e7eb;
+            --heading: #f9fafb;
+            --muted: #a7b0bd;
+            --border: #374151;
+            --button: #3b82f6;
+            --button-hover: #2563eb;
+        }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .auth-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 36px 32px;
+            max-width: 460px;
+            width: 100%;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        }
+        .auth-card h1 {
+            margin: 0 0 8px 0;
+            font-size: 24px;
+            color: var(--heading);
+            text-align: center;
+        }
+        .auth-card p.subtitle {
+            margin: 0 0 24px 0;
+            font-size: 14px;
+            color: var(--muted);
+            text-align: center;
+        }
+        .alert {
+            padding: 12px 14px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .alert-error {
+            background: var(--danger-bg);
+            color: var(--danger-text);
+            border: 1px solid rgba(132,32,41,0.2);
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--heading);
+        }
+        .form-group input {
+            width: 100%;
+            padding: 11px 13px;
+            font-size: 15px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--surface);
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .form-group input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+        }
+        .help-text {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #ffffff;
+            background: var(--button);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.15s;
+            margin-top: 8px;
+        }
+        .btn-submit:hover {
+            background: var(--button-hover);
+        }
+        .auth-footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--muted);
+        }
+        .auth-footer a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 16px;
+            font-size: 13px;
+            color: var(--muted);
+            text-decoration: none;
+        }
+        .back-link:hover { color: var(--heading); text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="auth-card">
+        <h1>Citizen Registration</h1>
+        <p class="subtitle">Create an account to report potholes and track repair progress</p>
+
+        {% if error %}
+        <div class="alert alert-error">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" action="/register">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" value="{{ name or '' }}" required autofocus autocomplete="name" placeholder="e.g. Ramesh Kumar">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" value="{{ email or '' }}" required autocomplete="email" placeholder="you@example.com">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required autocomplete="new-password" placeholder="At least 8 characters">
+                <div class="help-text">Must be at least 8 characters long.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password</label>
+                <input type="password" id="confirm_password" name="confirm_password" required autocomplete="new-password" placeholder="Re-enter your password">
+            </div>
+
+            <button type="submit" class="btn-submit">Create Citizen Account</button>
+        </form>
+
+        <div class="auth-footer">
+            Already have an account? <a href="/login">Sign in</a>
+        </div>
+        <a href="/" class="back-link">← Return to Home</a>
+    </div>
+</body>
+</html>

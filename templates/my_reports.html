@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Reports — Pothole Detection & Reporting</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --background: #f4f6f8;
+            --surface: #ffffff;
+            --surface-secondary: #fafbfc;
+            --text: #212529;
+            --heading: #111827;
+            --muted: #667085;
+            --border: #dfe3e8;
+            --header: #1f2937;
+            --header-text: #ffffff;
+            --button: #1f2937;
+            --button-hover: #111827;
+            --success: #198754;
+            --high-bg: #f8d7da;
+            --high-text: #842029;
+            --medium-bg: #fff3cd;
+            --medium-text: #664d03;
+            --low-bg: #d1e7dd;
+            --low-text: #0f5132;
+        }
+
+        body.dark-mode {
+            --background: #111827;
+            --surface: #1f2937;
+            --surface-secondary: #18212f;
+            --text: #e5e7eb;
+            --heading: #f9fafb;
+            --muted: #a7b0bd;
+            --border: #374151;
+            --header: #0f172a;
+            --button: #e5e7eb;
+            --button-hover: #ffffff;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        header {
+            background: var(--header);
+            color: var(--header-text);
+            padding: 16px 24px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 20px;
+            color: #ffffff;
+        }
+
+        .brand p {
+            margin: 2px 0 0 0;
+            font-size: 13px;
+            color: #9ca3af;
+        }
+
+        .nav-items {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            background: transparent;
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: background 0.15s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-btn.primary {
+            background: #2563eb;
+            border-color: #2563eb;
+        }
+
+        .nav-btn.primary:hover {
+            background: #1d4ed8;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 28px auto;
+            padding: 0 20px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .page-header h2 {
+            margin: 0;
+            font-size: 26px;
+            color: var(--heading);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card .label {
+            font-size: 13px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--heading);
+        }
+
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 20px;
+        }
+
+        .report-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .report-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .report-image-box {
+            position: relative;
+            height: 180px;
+            background: #111827;
+            overflow: hidden;
+        }
+
+        .report-image-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .report-id-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            backdrop-filter: blur(4px);
+        }
+
+        .report-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .report-tags {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .badge-high {
+            background: var(--high-bg);
+            color: var(--high-text);
+        }
+
+        .badge-medium {
+            background: var(--medium-bg);
+            color: var(--medium-text);
+        }
+
+        .badge-low {
+            background: var(--low-bg);
+            color: var(--low-text);
+        }
+
+        .badge-open {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .badge-progress {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .badge-resolved {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .report-info-row {
+            font-size: 13px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .report-info-row strong {
+            color: var(--heading);
+        }
+
+        .report-info-row span {
+            color: var(--muted);
+            line-height: 1.4;
+        }
+
+        .evidence-preview {
+            background: var(--surface-secondary);
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .evidence-preview strong {
+            color: var(--heading);
+        }
+
+        .evidence-images {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .evidence-images img {
+            width: 100%;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--surface);
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            max-width: 500px;
+            margin: 40px auto;
+        }
+
+        .empty-state h3 {
+            margin: 0 0 8px 0;
+            font-size: 20px;
+            color: var(--heading);
+        }
+
+        .empty-state p {
+            color: var(--muted);
+            margin: 0 0 20px 0;
+            font-size: 14px;
+        }
+    </style>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+</head>
+
+<body>
+    <header>
+        <div class="header-content">
+            <div class="brand">
+                <h1>Pothole Detection & Reporting</h1>
+                <p>Citizen Report Tracking Portal</p>
+            </div>
+            <nav class="nav-items">
+                <a href="/" class="nav-btn">Home</a>
+                <a href="/my-reports" class="nav-btn primary">My Reports</a>
+                {% if current_user.role == 'officer' %}
+                <a href="/municipal" class="nav-btn">Municipal Portal</a>
+                {% endif %}
+                <span style="font-size: 13px; color: #e5e7eb; margin: 0 4px;">{{ current_user.name }}</span>
+                <a href="/logout" class="nav-btn">Sign Out</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="page-header">
+            <div>
+                <h2>My Reported Potholes</h2>
+                <span style="font-size: 14px; color: var(--muted);">Track inspection, road crew dispatch, and
+                    photographic repair proof</span>
+            </div>
+            <a href="/" class="nav-btn primary">+ Report New Pothole</a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="label">Total Submitted</div>
+                <div class="value">{{ reports|length }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Open Reports</div>
+                <div class="value">{{ reports|selectattr('status', 'equalto', 'Open')|list|length }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">In Progress</div>
+                <div class="value">{{ reports|selectattr('status', 'equalto', 'In Progress')|list|length }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Resolved & Repaired</div>
+                <div class="value" style="color: #15803d;">{{ reports|selectattr('status', 'equalto',
+                    'Resolved')|list|length }}</div>
+            </div>
+        </div>
+
+        {% if reports %}
+        <div class="reports-grid">
+            {% for report in reports %}
+            <div class="report-card">
+                <div class="report-image-box">
+                    <span class="report-id-badge">#{{ report.id }}</span>
+                    {% if report.image_path %}
+                    <img src="/uploads/{{ report.image_filename }}" alt="Pothole photo" loading="lazy">
+                    {% else %}
+                    <div
+                        style="color: #9ca3af; display: flex; align-items: center; justify-content: center; height: 100%; font-size: 13px;">
+                        No image available</div>
+                    {% endif %}
+                </div>
+
+                <div class="report-body">
+                    <div class="report-tags">
+                        {% if report.overall_severity_level == 'HIGH' %}
+                        <span class="badge badge-high">HIGH Severity</span>
+                        {% elif report.overall_severity_level == 'MEDIUM' %}
+                        <span class="badge badge-medium">MEDIUM Severity</span>
+                        {% else %}
+                        <span class="badge badge-low">LOW Severity</span>
+                        {% endif %}
+
+                        {% if report.status == 'Resolved' %}
+                        <span class="badge badge-resolved">Resolved</span>
+                        {% elif report.status == 'In Progress' %}
+                        <span class="badge badge-progress">In Progress</span>
+                        {% else %}
+                        <span class="badge badge-open">Open</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="report-info-row">
+                        <strong>Score & Hazards:</strong>
+                        <span>Severity Score: {{ report.overall_severity_score }} | Detected: {{ report.pothole_count }}
+                            pothole(s)</span>
+                    </div>
+
+                    <div class="report-info-row">
+                        <strong>Location:</strong>
+                        <span>{{ report.location or "Coordinates recorded (No reverse-geocoded address)" }}</span>
+                    </div>
+
+                    <div class="report-info-row">
+                        <strong>Reported On:</strong>
+                        <span>{{ report.reported_at }}</span>
+                    </div>
+
+                    {% if report.after_image_path %}
+                    <div class="evidence-preview">
+                        <strong>Photographic Repair Verification:</strong>
+                        <div style="margin-top: 4px; font-style: italic;">{{ report.repair_notes or "Repair work
+                            verified by municipal team." }}</div>
+                        <div class="evidence-images">
+                            <div>
+                                <div style="font-size: 11px; font-weight: 600; margin-bottom: 2px;">Before</div>
+                                <img src="/uploads/{{ report.image_filename }}" alt="Before repair">
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; font-weight: 600; margin-bottom: 2px; color: #15803d;">
+                                    After Repair</div>
+                                <img src="/uploads/repair/{{ report.after_filename }}" alt="After repair">
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h3>No reports found</h3>
+            <p>You haven't submitted any road damage reports yet.</p>
+            <a href="/" class="nav-btn primary">Report a Pothole Now</a>
+        </div>
+        {% endif %}
+    </main>
+</body>
+
+</html>

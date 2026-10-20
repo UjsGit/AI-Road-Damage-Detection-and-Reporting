@@ -1332,6 +1332,8 @@
 
     </style>
 
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
 </head>
 
 
@@ -1400,13 +1402,24 @@
                     </button>
 
 
-                    <button
+                    {% if current_user %}
+                    <span style="font-size: 13px; color: #9ca3af; padding: 0 6px;">{{ current_user.name }} ({{ current_user.role|capitalize }})</span>
+                    <a
                         class="nav-button"
-                        type="button"
-                        onclick="showToast('Municipal account access will be connected later.')"
+                        href="/logout"
+                        style="text-decoration: none;"
+                    >
+                        Sign Out
+                    </a>
+                    {% else %}
+                    <a
+                        class="nav-button"
+                        href="/login?next=/municipal"
+                        style="text-decoration: none;"
                     >
                         Sign In
-                    </button>
+                    </a>
+                    {% endif %}
 
 
                     <button
@@ -2560,13 +2573,16 @@ if (report.image_path) {
 
     try {
 
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+
         const response = await fetch(
             `/reports/${selectedReport.id}/status`,
             {
                 method: "PUT",
 
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "X-CSRF-Token": csrfToken
                 },
 
                 body: JSON.stringify({
@@ -3267,10 +3283,14 @@ async function uploadRepairEvidence() {
     message.textContent = "Uploading repair evidence...";
 
     try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
         const response = await fetch(
             `/reports/${selectedReport.id}/repair-evidence`,
             {
                 method: "POST",
+                headers: {
+                    "X-CSRF-Token": csrfToken
+                },
                 body: formData
             }
         );

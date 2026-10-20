@@ -1188,6 +1188,8 @@
 
     </style>
 
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
 </head>
 
 
@@ -1221,50 +1223,67 @@
 
                 <nav class="navigation">
 
-                    <button
+                    <a
                         class="nav-button"
-                        type="button"
-                        onclick="goHome()"
+                        href="/"
+                        style="text-decoration: none;"
                     >
                         Home
-                    </button>
+                    </a>
 
-
-                    <button
+                    {% if current_user %}
+                    <a
                         class="nav-button"
-                        type="button"
-                        onclick="showAccountMessage('Profile')"
+                        href="/my-reports"
+                        style="text-decoration: none;"
                     >
-                        Profile
-                    </button>
+                        My Reports
+                    </a>
 
-
-                    <button
+                    {% if current_user.role == 'officer' %}
+                    <a
                         class="nav-button"
-                        type="button"
-                        onclick="showAccountMessage('Sign In')"
-                    >
-                        Sign In
-                    </button>
-
-
-                    <button
-                        class="nav-button primary"
-                        type="button"
-                        onclick="showAccountMessage('Sign Up')"
-                    >
-                        Sign Up
-                    </button>
-
-
-                    <button
-                        class="nav-button"
-                        type="button"
-                        onclick="goMunicipal()"
+                        href="/municipal"
+                        style="text-decoration: none;"
                     >
                         Municipal Portal
-                    </button>
+                    </a>
+                    {% endif %}
 
+                    <span style="font-size: 13px; color: #d1d5db; padding: 0 4px;">{{ current_user.name }}</span>
+
+                    <a
+                        class="nav-button"
+                        href="/logout"
+                        style="text-decoration: none;"
+                    >
+                        Sign Out
+                    </a>
+                    {% else %}
+                    <a
+                        class="nav-button"
+                        href="/login"
+                        style="text-decoration: none;"
+                    >
+                        Sign In
+                    </a>
+
+                    <a
+                        class="nav-button primary"
+                        href="/register"
+                        style="text-decoration: none;"
+                    >
+                        Sign Up
+                    </a>
+
+                    <a
+                        class="nav-button"
+                        href="/login?next=/municipal"
+                        style="text-decoration: none;"
+                    >
+                        Municipal Portal
+                    </a>
+                    {% endif %}
 
                     <button
                         class="nav-button"
@@ -1982,16 +2001,28 @@
 
                 try {
 
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
 
                     const response =
                         await fetch(
                             "/predict",
                             {
                                 method: "POST",
+                                headers: {
+                                    "X-CSRF-Token": csrfToken
+                                },
                                 body: formData
                             }
                         );
 
+                    if (response.status === 401) {
+                        resultDiv.innerHTML = `
+                            <div class="error-message">
+                                <strong>Sign-in Required:</strong> Please <a href="/login?next=/" style="color: inherit; text-decoration: underline; font-weight: bold;">sign in to your citizen account</a> to submit reports.
+                            </div>
+                        `;
+                        return;
+                    }
 
                     const data =
                         await response.json();
@@ -2494,7 +2525,7 @@
            Existing Reports
         ========================================= */
 
-        fetch("/reports")
+        fetch("/reports/public-markers")
 
             .then(
                 response =>

@@ -15,6 +15,19 @@ def create_database(db_path=DB_PATH):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
+    # User accounts table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            name TEXT NOT NULL,
+            role TEXT NOT NULL DEFAULT 'citizen' CHECK(role IN ('citizen', 'officer')),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)")
+
     # Main municipal reports
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS reports (
@@ -28,15 +41,20 @@ def create_database(db_path=DB_PATH):
             pothole_count INTEGER DEFAULT 0,
             status TEXT DEFAULT 'Open',
             reported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            notes TEXT
+            notes TEXT,
+            user_id INTEGER REFERENCES users(id)
         )
     """)
 
-    # Ensure location column exists if table was created with an older schema
+    # Ensure location and user_id columns exist if table was created with an older schema
     cursor.execute("PRAGMA table_info(reports)")
     existing_columns = [column[1] for column in cursor.fetchall()]
     if "location" not in existing_columns:
         cursor.execute("ALTER TABLE reports ADD COLUMN location TEXT")
+    if "user_id" not in existing_columns:
+        cursor.execute("ALTER TABLE reports ADD COLUMN user_id INTEGER REFERENCES users(id)")
+
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_reports_user_id ON reports(user_id)")
 
     # Individual YOLO detections belonging to a report
     cursor.execute("""
@@ -73,4 +91,4 @@ def create_database(db_path=DB_PATH):
 
 if __name__ == "__main__":
     create_database()
-    print("Database created/verified successfully.")
+    print("Database created/verified successfully.")
