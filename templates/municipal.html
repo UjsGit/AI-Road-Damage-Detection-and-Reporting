@@ -33,64 +33,85 @@
         ========================================= */
 
         :root {
-
-            --background: #f4f6f8;
-
+            --background: #f1f5f9;
             --surface: #ffffff;
+            --surface-secondary: #f8fafc;
+            --text: #0f172a;
+            --heading: #0f172a;
+            --muted: #475569;
+            --border: #cbd5e1;
+            --border-dark: #94a3b8;
+            --header: #0f172a;
+            --header-text: #ffffff;
+            --button: #0f172a;
+            --button-hover: #1e293b;
+            --focus: #0284c7;
+            --focus-ring: rgba(2, 132, 199, 0.25);
+            --success: #15803d;
 
-            --surface-secondary: #fafbfc;
+            --high-bg: #fee2e2;
+            --high-text: #991b1b;
+            --high-border: #f87171;
 
-            --text: #212529;
+            --medium-bg: #fef3c7;
+            --medium-text: #92400e;
+            --medium-border: #fcd34d;
 
-            --heading: #111827;
+            --low-bg: #e2e8f0;
+            --low-text: #334155;
+            --low-border: #94a3b8;
 
-            --muted: #6b7280;
+            --status-open-bg: #eff6ff;
+            --status-open-text: #1e40af;
+            --status-open-border: #93c5fd;
 
-            --border: #dee2e6;
+            --status-prog-bg: #fffbeb;
+            --status-prog-text: #b45309;
+            --status-prog-border: #fde68a;
 
-            --header: #1f2937;
-
-            --button: #1f2937;
-
-            --button-hover: #111827;
-
-            --high-bg: #f8d7da;
-
-            --high-text: #842029;
-
-            --medium-bg: #fff3cd;
-
-            --medium-text: #664d03;
-
-            --low-bg: #d1e7dd;
-
-            --low-text: #0f5132;
-
+            --status-res-bg: #dcfce7;
+            --status-res-text: #166534;
+            --status-res-border: #86efac;
         }
 
-
         body.dark-mode {
-
-            --background: #111827;
-
-            --surface: #1f2937;
-
-            --surface-secondary: #18212f;
-
-            --text: #e5e7eb;
-
-            --heading: #f9fafb;
-
-            --muted: #9ca3af;
-
-            --border: #374151;
-
-            --header: #0f172a;
-
-            --button: #e5e7eb;
-
+            --background: #0b1120;
+            --surface: #131c2e;
+            --surface-secondary: #1a263d;
+            --text: #f1f5f9;
+            --heading: #f8fafc;
+            --muted: #94a3b8;
+            --border: #2d3b55;
+            --border-dark: #475569;
+            --header: #070d18;
+            --button: #e2e8f0;
             --button-hover: #ffffff;
+            --focus: #38bdf8;
+            --focus-ring: rgba(56, 189, 248, 0.3);
 
+            --high-bg: #450a0a;
+            --high-text: #fca5a5;
+            --high-border: #991b1b;
+
+            --medium-bg: #451a03;
+            --medium-text: #fde68a;
+            --medium-border: #78350f;
+
+            --low-bg: #1e293b;
+            --low-text: #cbd5e1;
+            --low-border: #475569;
+
+            --status-open-bg: #172554;
+            --status-open-text: #93c5fd;
+            --status-open-border: #1e40af;
+
+            --status-prog-bg: #422006;
+            --status-prog-text: #fde047;
+            --status-prog-border: #854d0e;
+
+            --status-res-bg: #052e16;
+            --status-res-text: #86efac;
+            --status-res-border: #166534;
         }
 
 
@@ -103,8 +124,12 @@
             margin: 0;
 
             font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                "Helvetica Neue",
                 Arial,
-                Helvetica,
                 sans-serif;
 
             background:
@@ -1428,7 +1453,7 @@
                         type="button"
                         onclick="toggleDarkMode()"
                     >
-                        🌙 Dark
+                        Dark Mode
                     </button>
 
                 </nav>
@@ -1827,7 +1852,7 @@
                 <button
                     class="notification-button"
                     type="button"
-                    onclick="showToast('Notification service will be connected later.')"
+                    onclick="handleNotifyReporterClick()"
                 >
                     Notify Reporter
                 </button>
@@ -2296,7 +2321,7 @@
                 );
 
                 themeButton.textContent =
-                    "☀ Light";
+                    "Light Mode";
 
             }
 
@@ -2307,7 +2332,7 @@
                 );
 
                 themeButton.textContent =
-                    "🌙 Dark";
+                    "Dark Mode";
 
             }
 
@@ -2330,7 +2355,7 @@
                 );
 
                 themeButton.textContent =
-                    "☀ Light";
+                    "Light Mode";
 
             }
 
@@ -2342,7 +2367,7 @@
                 );
 
                 themeButton.textContent =
-                    "🌙 Dark";
+                    "Dark Mode";
 
             }
 
@@ -2632,9 +2657,23 @@ if (report.image_path) {
             });
 
 
-        showToast(
-            `Status updated to ${newStatus}`
-        );
+        if (newStatus === "Resolved") {
+            if (data.email_status === "sent") {
+                showToast("Status updated to Resolved. Notification email sent to reporter.");
+            } else if (data.email_status === "already_notified") {
+                showToast("Status updated to Resolved. (Reporter was already notified; duplicate email prevented)");
+            } else if (data.email_status === "no_reporter") {
+                showToast("Status updated to Resolved. (Historical report has no registered owner)");
+            } else if (data.email_status === "not_configured") {
+                showToast("Status updated to Resolved. (Email skipped: SMTP not configured in .env)");
+            } else if (data.email_status === "failed") {
+                showToast("Status updated to Resolved, but email delivery failed via SMTP.");
+            } else {
+                showToast(`Status updated to ${newStatus}`);
+            }
+        } else {
+            showToast(`Status updated to ${newStatus}`);
+        }
 
 
         // Refresh dashboard data separately
@@ -2682,6 +2721,46 @@ if (report.image_path) {
 
     }
 
+}
+
+
+async function handleNotifyReporterClick() {
+    if (!selectedReport) {
+        showToast("Select a report first.");
+        return;
+    }
+
+    if (selectedReport.status !== "Resolved") {
+        showToast("Reporter will be automatically notified when this report is marked as Resolved.");
+        return;
+    }
+
+    if (selectedReport.resolution_notified_at) {
+        showToast("Resolution notification has already been sent for this report.");
+        return;
+    }
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+
+    try {
+        const response = await fetch(`/reports/${selectedReport.id}/notify-reporter`, {
+            method: "POST",
+            headers: {
+                "X-CSRF-Token": csrfToken
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showToast("Resolution notification email accepted by mail server.");
+            selectedReport.resolution_notified_at = new Date().toISOString();
+        } else {
+            showToast(data.error || "Failed to send notification.");
+        }
+    } catch (err) {
+        showToast("Network error trying to notify reporter.");
+    }
 }
 
 

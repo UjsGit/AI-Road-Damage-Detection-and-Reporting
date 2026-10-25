@@ -2,1576 +2,1063 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pothole Detection & Municipal Reporting</title>
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Pothole Detection & Reporting</title>
-
-
-    <!-- Leaflet -->
-
-    <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    >
-
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
     <style>
-
-        * {
+        *, *::before, *::after {
             box-sizing: border-box;
         }
 
-
-        /* =========================================
-           Theme Variables
-        ========================================= */
-
         :root {
-
-            --background: #f4f6f8;
+            --background: #f1f5f9;
             --surface: #ffffff;
-            --surface-secondary: #fafbfc;
-
-            --text: #212529;
-            --heading: #111827;
-            --muted: #667085;
-
-            --border: #dfe3e8;
-
-            --header: #1f2937;
+            --surface-secondary: #f8fafc;
+            --text: #0f172a;
+            --heading: #0f172a;
+            --muted: #475569;
+            --border: #cbd5e1;
+            --border-dark: #94a3b8;
+            --header: #0f172a;
             --header-text: #ffffff;
+            --button: #0f172a;
+            --button-hover: #1e293b;
+            --focus: #0284c7;
+            --focus-ring: rgba(2, 132, 199, 0.25);
+            --success: #15803d;
 
-            --button: #1f2937;
-            --button-hover: #111827;
+            --high-bg: #fee2e2;
+            --high-text: #991b1b;
+            --high-border: #f87171;
 
-            --success: #198754;
+            --medium-bg: #fef3c7;
+            --medium-text: #92400e;
+            --medium-border: #fcd34d;
 
-            --high-bg: #f8d7da;
-            --high-text: #842029;
+            --low-bg: #e2e8f0;
+            --low-text: #334155;
+            --low-border: #94a3b8;
 
-            --medium-bg: #fff3cd;
-            --medium-text: #664d03;
+            --status-open-bg: #eff6ff;
+            --status-open-text: #1e40af;
+            --status-open-border: #93c5fd;
 
-            --low-bg: #d1e7dd;
-            --low-text: #0f5132;
+            --status-prog-bg: #fffbeb;
+            --status-prog-text: #b45309;
+            --status-prog-border: #fde68a;
 
+            --status-res-bg: #dcfce7;
+            --status-res-text: #166534;
+            --status-res-border: #86efac;
         }
-
 
         body.dark-mode {
-
-            --background: #111827;
-            --surface: #1f2937;
-            --surface-secondary: #18212f;
-
-            --text: #e5e7eb;
-            --heading: #f9fafb;
-            --muted: #a7b0bd;
-
-            --border: #374151;
-
-            --header: #0f172a;
-
-            --button: #e5e7eb;
+            --background: #0b1120;
+            --surface: #131c2e;
+            --surface-secondary: #1a263d;
+            --text: #f1f5f9;
+            --heading: #f8fafc;
+            --muted: #94a3b8;
+            --border: #2d3b55;
+            --border-dark: #475569;
+            --header: #070d18;
+            --button: #e2e8f0;
             --button-hover: #ffffff;
+            --focus: #38bdf8;
+            --focus-ring: rgba(56, 189, 248, 0.3);
 
+            --high-bg: #450a0a;
+            --high-text: #fca5a5;
+            --high-border: #991b1b;
+
+            --medium-bg: #451a03;
+            --medium-text: #fde68a;
+            --medium-border: #78350f;
+
+            --low-bg: #1e293b;
+            --low-text: #cbd5e1;
+            --low-border: #475569;
+
+            --status-open-bg: #172554;
+            --status-open-text: #93c5fd;
+            --status-open-border: #1e40af;
+
+            --status-prog-bg: #422006;
+            --status-prog-text: #fde047;
+            --status-prog-border: #854d0e;
+
+            --status-res-bg: #052e16;
+            --status-res-text: #86efac;
+            --status-res-border: #166534;
         }
-
-
-        /* =========================================
-           Base
-        ========================================= */
 
         html {
             scroll-behavior: smooth;
         }
 
-
         body {
-
             margin: 0;
-
-            font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
-
-            background:
-                var(--background);
-
-            color:
-                var(--text);
-
-            transition:
-                background 0.2s ease,
-                color 0.2s ease;
-
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.5;
+            transition: background 0.2s ease, color 0.2s ease;
         }
 
-
-        button,
-        input {
-
+        button, input {
             font-family: inherit;
-
         }
 
-
-        /* =========================================
-           Header
-        ========================================= */
-
+        /* Header */
         header {
-
-            background:
-                var(--header);
-
-            color:
-                var(--header-text);
-
-            padding:
-                16px 30px;
-
+            background: var(--header);
+            color: var(--header-text);
+            padding: 14px 24px;
+            border-bottom: 1px solid var(--border-dark);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
         }
-
 
         .header-content {
-
-            max-width: 1150px;
-
+            max-width: 1200px;
             margin: 0 auto;
-
         }
-
 
         .header-row {
-
             display: flex;
-
-            justify-content:
-                space-between;
-
+            justify-content: space-between;
             align-items: center;
-
-            gap: 25px;
-
+            gap: 20px;
+            flex-wrap: wrap;
         }
-
 
         .brand {
-
-            min-width: 250px;
-
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: inherit;
         }
 
+        .brand-crest {
+            width: 36px;
+            height: 36px;
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            flex-shrink: 0;
+        }
+
+        body.dark-mode .brand-crest {
+            background: #0f172a;
+            border-color: #334155;
+        }
 
         .brand h1 {
-
             margin: 0;
-
-            font-size: 25px;
-
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+            color: #ffffff;
+            line-height: 1.2;
         }
-
 
         .brand p {
-
-            margin:
-                6px 0 0;
-
-            color:
-                #d1d5db;
-
-            font-size: 13px;
-
+            margin: 2px 0 0;
+            color: #94a3b8;
+            font-size: 12px;
+            line-height: 1.3;
         }
 
-
-        /* =========================================
-           Navigation
-        ========================================= */
-
+        /* Navigation */
         .navigation {
-
             display: flex;
-
             align-items: center;
-
-            gap: 7px;
-
+            gap: 8px;
             flex-wrap: wrap;
-
         }
-
 
         .nav-button {
-
             background: transparent;
-
-            color: white;
-
-            border:
-                1px solid #4b5563;
-
-            padding:
-                8px 12px;
-
-            border-radius: 5px;
-
-            cursor: pointer;
-
+            color: #f1f5f9;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 6px;
             font-size: 13px;
-
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.15s, border-color 0.15s;
         }
-
 
         .nav-button:hover {
-
-            background:
-                #374151;
-
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.35);
         }
 
+        .nav-button:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
 
         .nav-button.primary {
-
-            background: white;
-
-            color: #1f2937;
-
-            border-color: white;
-
+            background: #15803d;
+            border-color: #16a34a;
+            color: #ffffff;
+            font-weight: 600;
         }
-
 
         .nav-button.primary:hover {
-
-            background: #e5e7eb;
-
+            background: #166534;
+            border-color: #15803d;
         }
 
+        .user-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #e2e8f0;
+        }
 
-        /* =========================================
-           Container
-        ========================================= */
+        .user-chip-dot {
+            width: 7px;
+            height: 7px;
+            background: #22c55e;
+            border-radius: 50%;
+        }
 
+        /* Container & Cards */
         .container {
-
-            max-width: 1150px;
-
-            margin: 0 auto;
-
-            padding:
-                30px 20px;
-
+            max-width: 1200px;
+            margin: 24px auto;
+            padding: 0 20px;
         }
-
-
-        /* =========================================
-           Sections
-        ========================================= */
 
         .section {
-
-            background:
-                var(--surface);
-
-            padding:
-                24px;
-
-            margin-bottom:
-                25px;
-
-            border:
-                1px solid var(--border);
-
-            border-radius:
-                8px;
-
-            box-shadow:
-                0 2px 8px rgba(
-                    0,
-                    0,
-                    0,
-                    0.05
-                );
-
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
         }
 
+        .section-header {
+            margin-bottom: 18px;
+        }
 
         .section h2 {
-
-            margin-top: 0;
-
-            color:
-                var(--heading);
-
+            margin: 0 0 4px 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--heading);
+            letter-spacing: -0.2px;
         }
-
 
         .section-description {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.45;
+        }
 
-            color:
-                var(--muted);
+        /* Reporting Workbench: 2 Columns */
+        .reporting-workbench {
+            padding: 24px;
+        }
 
-            margin-top:
-                -5px;
+        .reporting-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 24px;
+            align-items: start;
+        }
 
-            margin-bottom:
-                22px;
+        @media (max-width: 880px) {
+            .reporting-grid {
+                grid-template-columns: 1fr;
+            }
+        }
 
+        .panel-column {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .panel-heading {
             font-size: 14px;
-
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--muted);
+            margin: 0 0 4px 0;
         }
 
-
-        /* =========================================
-           Upload
-        ========================================= */
-
+        /* Upload Area */
         .upload-area {
-
-            border:
-                2px dashed var(--border);
-
-            border-radius:
-                8px;
-
-            padding:
-                30px;
-
-            text-align:
-                center;
-
-            background:
-                var(--surface-secondary);
-
+            border: 2px dashed var(--border-dark);
+            border-radius: 8px;
+            padding: 32px 20px;
+            text-align: center;
+            background: var(--surface-secondary);
+            cursor: pointer;
+            transition: border-color 0.15s, background-color 0.15s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
         }
 
+        .upload-area:hover {
+            border-color: var(--focus);
+            background: var(--surface);
+        }
+
+        .upload-icon {
+            color: var(--muted);
+            margin-bottom: 10px;
+        }
+
+        .upload-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--heading);
+            margin-bottom: 4px;
+        }
 
         .upload-area p {
-
-            margin:
-                5px 0;
-
-            color:
-                var(--muted);
-
+            margin: 0 0 12px 0;
+            color: var(--muted);
+            font-size: 13px;
         }
 
-
-        .upload-area input[type="file"] {
-
-            margin-top:
-                15px;
-
-            max-width:
-                100%;
-
+        .sr-file-input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
         }
 
+        .upload-browse-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+        }
 
-        /* =========================================
-           Image Preview
-        ========================================= */
+        .upload-browse-btn:hover {
+            background: var(--surface-secondary);
+            border-color: var(--border-dark);
+        }
 
+        .upload-formats {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 10px;
+        }
+
+        /* Image Preview Box */
         .image-preview {
-
             display: none;
-
-            margin-top:
-                20px;
-
-            text-align:
-                center;
-
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface-secondary);
+            padding: 12px;
+            text-align: center;
         }
-
 
         .image-preview img {
-
-            max-width:
-                100%;
-
-            max-height:
-                300px;
-
-            border-radius:
-                6px;
-
-            border:
-                1px solid var(--border);
-
+            max-width: 100%;
+            max-height: 260px;
+            border-radius: 6px;
+            object-fit: contain;
+            border: 1px solid var(--border);
+            background: #0f172a;
         }
 
+        .preview-meta {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 6px 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+
+        .preview-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #166534;
+        }
+
+        body.dark-mode .preview-badge {
+            color: #86efac;
+        }
 
         .preview-name {
-
-            margin-top:
-                8px;
-
-            color:
-                var(--muted);
-
-            font-size:
-                13px;
-
+            font-size: 12px;
+            font-family: monospace;
+            color: var(--muted);
+            word-break: break-all;
         }
 
-
-        /* =========================================
-           Location
-        ========================================= */
-
+        /* Location Card */
         .location-box {
-
-            margin-top:
-                22px;
-
-            padding:
-                18px;
-
-            border:
-                1px solid var(--border);
-
-            border-radius:
-                7px;
-
-            background:
-                var(--surface-secondary);
-
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface-secondary);
         }
 
+        .location-box-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
 
         .location-box h3 {
-
-            margin-top:
-                0;
-
-            margin-bottom:
-                10px;
-
-            font-size:
-                17px;
-
-            color:
-                var(--heading);
-
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--heading);
         }
 
+        .location-tag {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 6px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--muted);
+        }
+
+        .location-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 12px;
+        }
 
         #locationStatus {
-
-            margin:
-                10px 0 0;
-
-            color:
-                var(--muted);
-
-            font-size:
-                14px;
-
+            margin: 0;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--surface);
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.4;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-
-        /* =========================================
-           Buttons
-        ========================================= */
-
+        /* Buttons */
         .primary-button {
-
-            background:
-                var(--button);
-
-            color:
-                var(--surface);
-
-            border:
-                none;
-
-            padding:
-                11px 20px;
-
-            border-radius:
-                6px;
-
-            cursor:
-                pointer;
-
-            font-size:
-                15px;
-
-            font-weight:
-                600;
-
+            background: var(--button);
+            color: #ffffff;
+            border: 1px solid var(--border);
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.15s, border-color 0.15s;
         }
-
 
         body.dark-mode .primary-button {
-
-            color:
-                #111827;
-
+            color: #0f172a;
         }
-
 
         .primary-button:hover {
-
-            background:
-                var(--button-hover);
-
+            background: var(--button-hover);
         }
 
+        .primary-button:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
 
         .primary-button:disabled {
-
-            background:
-                #6b7280;
-
-            cursor:
-                not-allowed;
-
+            background: #64748b;
+            cursor: not-allowed;
+            border-color: #64748b;
+            color: #e2e8f0;
         }
-
 
         .secondary-button {
-
-            background:
-                var(--surface);
-
-            color:
-                var(--text);
-
-            border:
-                1px solid var(--border);
-
-            padding:
-                9px 16px;
-
-            border-radius:
-                6px;
-
-            cursor:
-                pointer;
-
-            font-size:
-                14px;
-
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 9px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.15s, border-color 0.15s;
         }
-
 
         .secondary-button:hover {
-
-            background:
-                var(--surface-secondary);
-
+            background: var(--surface-secondary);
+            border-color: var(--border-dark);
         }
 
+        .secondary-button:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
 
         .analyze-container {
-
-            margin-top:
-                22px;
-
+            margin-top: 4px;
         }
 
+        .analyze-note {
+            font-size: 12px;
+            color: var(--muted);
+            margin: 8px 0 0;
+            line-height: 1.4;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
 
-        /* =========================================
-           Result
-        ========================================= */
-
+        /* Results Card */
         #result {
-
-            display:
-                none;
-
+            display: none;
         }
-
 
         .result-header {
-
-            display:
-                flex;
-
-            justify-content:
-                space-between;
-
-            align-items:
-                center;
-
-            gap:
-                15px;
-
-            margin-bottom:
-                20px;
-
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
         }
-
 
         .result-header h2 {
-
-            margin:
-                0;
-
+            margin: 0;
+            font-size: 18px;
+            color: var(--heading);
         }
-
 
         .result-success {
-
-            color:
-                var(--success);
-
-            font-size:
-                14px;
-
-            font-weight:
-                600;
-
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #166534;
+            background: #dcfce7;
+            border: 1px solid #86efac;
+            padding: 3px 8px;
+            border-radius: 4px;
         }
 
+        body.dark-mode .result-success {
+            background: #052e16;
+            color: #86efac;
+            border-color: #166534;
+        }
 
         .result-grid {
-
-            display:
-                grid;
-
-            grid-template-columns:
-                repeat(2, 1fr);
-
-            gap:
-                16px;
-
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
         }
 
+        @media (max-width: 640px) {
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+        }
 
         .result-item {
-
-            border:
-                1px solid var(--border);
-
-            padding:
-                16px;
-
-            border-radius:
-                7px;
-
-            background:
-                var(--surface-secondary);
-
+            border: 1px solid var(--border);
+            padding: 12px 14px;
+            border-radius: 6px;
+            background: var(--surface-secondary);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
-
 
         .result-label {
-
-            display:
-                block;
-
-            color:
-                var(--muted);
-
-            font-size:
-                13px;
-
-            margin-bottom:
-                7px;
-
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--muted);
+            font-weight: 600;
         }
-
 
         .result-value {
-
-            color:
-                var(--text);
-
-            font-size:
-                16px;
-
-            font-weight:
-                600;
-
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--heading);
         }
-
 
         .location-result {
-
-            grid-column:
-                1 / -1;
-
+            grid-column: 1 / -1;
         }
-
-
-        /* =========================================
-           Severity
-        ========================================= */
 
         .severity-badge {
-
-            display:
-                inline-block;
-
-            padding:
-                5px 11px;
-
-            border-radius:
-                12px;
-
-            font-size:
-                13px;
-
-            font-weight:
-                700;
-
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 4px;
+            border: 1px solid transparent;
+            width: fit-content;
         }
-
 
         .severity-high {
-
-            background:
-                var(--high-bg);
-
-            color:
-                var(--high-text);
-
+            background: var(--high-bg);
+            color: var(--high-text);
+            border-color: var(--high-border);
         }
-
 
         .severity-medium {
-
-            background:
-                var(--medium-bg);
-
-            color:
-                var(--medium-text);
-
+            background: var(--medium-bg);
+            color: var(--medium-text);
+            border-color: var(--medium-border);
         }
-
 
         .severity-low {
-
-            background:
-                var(--low-bg);
-
-            color:
-                var(--low-text);
-
+            background: var(--low-bg);
+            color: var(--low-text);
+            border-color: var(--low-border);
         }
 
-
-        /* =========================================
-           Messages
-        ========================================= */
-
+        /* Messages */
         .message-box {
-
-            padding:
-                18px;
-
-            border-radius:
-                7px;
-
-            background:
-                var(--surface-secondary);
-
-            border:
-                1px solid var(--border);
-
+            padding: 16px;
+            border-radius: 6px;
+            background: var(--surface-secondary);
+            border: 1px solid var(--border);
         }
-
 
         .message-box h3 {
-
-            margin-top:
-                0;
-
-            color:
-                var(--heading);
-
+            margin: 0 0 6px;
+            font-size: 15px;
+            color: var(--heading);
         }
 
+        .message-box p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--muted);
+        }
 
         .error-message {
-
-            color:
-                var(--high-text);
-
-            background:
-                var(--high-bg);
-
-            border:
-                1px solid #f1aeb5;
-
-            padding:
-                15px;
-
-            border-radius:
-                7px;
-
+            color: var(--high-text);
+            background: var(--high-bg);
+            border: 1px solid var(--high-border);
+            padding: 14px 16px;
+            border-radius: 6px;
+            font-size: 13px;
         }
 
+        /* Map Section */
+        .map-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
 
-        /* =========================================
-           Map
-        ========================================= */
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--surface-secondary);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+        }
 
         #map {
-
-            height:
-                500px;
-
-            width:
-                100%;
-
-            margin-top:
-                15px;
-
-            border-radius:
-                6px;
-
-            overflow:
-                hidden;
-
+            height: 480px;
+            width: 100%;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            overflow: hidden;
         }
 
-
-        /* =========================================
-           Legend
-        ========================================= */
+        @media (max-width: 600px) {
+            #map {
+                height: 360px;
+            }
+        }
 
         .map-legend {
-
-            background:
-                white;
-
-            padding:
-                10px;
-
-            line-height:
-                24px;
-
-            box-shadow:
-                0 0 8px rgba(
-                    0,
-                    0,
-                    0,
-                    0.3
-                );
-
-            border-radius:
-                5px;
-
+            background: var(--surface);
+            color: var(--text);
+            padding: 10px 14px;
+            line-height: 22px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+            font-size: 12px;
         }
-
 
         .legend-title {
-
-            font-weight:
-                bold;
-
-            margin-bottom:
-                5px;
-
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--heading);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
         }
 
-
-        /* =========================================
-           Footer
-        ========================================= */
-
+        /* Footer */
         footer {
-
-            background:
-                var(--surface);
-
-            border-top:
-                1px solid var(--border);
-
-            margin-top:
-                20px;
-
-            padding:
-                35px 20px 25px;
-
+            background: var(--header);
+            color: #94a3b8;
+            padding: 36px 24px 24px;
+            border-top: 1px solid var(--border-dark);
+            margin-top: 48px;
         }
-
 
         .footer-content {
-
-            max-width:
-                1150px;
-
-            margin:
-                0 auto;
-
+            max-width: 1200px;
+            margin: 0 auto;
         }
-
 
         .footer-grid {
-
-            display:
-                grid;
-
-            grid-template-columns:
-                2fr 1fr 1fr 1fr;
-
-            gap:
-                30px;
-
-            padding-bottom:
-                25px;
-
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1.2fr;
+            gap: 32px;
+            margin-bottom: 32px;
         }
 
+        @media (max-width: 880px) {
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
+        }
 
         .footer-column h3 {
-
-            margin-top:
-                0;
-
-            margin-bottom:
-                12px;
-
-            color:
-                var(--heading);
-
-            font-size:
-                15px;
-
+            margin: 0 0 12px;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-
 
         .footer-column p {
-
-            color:
-                var(--muted);
-
-            font-size:
-                13px;
-
-            line-height:
-                1.6;
-
-            margin:
-                0;
-
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.6;
         }
-
 
         .footer-link {
-
-            display:
-                block;
-
-            border:
-                none;
-
-            background:
-                none;
-
-            padding:
-                0;
-
-            margin:
-                0 0 9px;
-
-            color:
-                var(--muted);
-
-            cursor:
-                pointer;
-
-            font-size:
-                13px;
-
-            text-align:
-                left;
-
+            display: block;
+            background: transparent;
+            border: none;
+            padding: 4px 0;
+            color: #94a3b8;
+            font-size: 13px;
+            cursor: pointer;
+            text-align: left;
+            transition: color 0.15s;
         }
-
 
         .footer-link:hover {
-
-            color:
-                var(--heading);
-
+            color: #ffffff;
+            text-decoration: underline;
         }
-
 
         .footer-bottom {
-
-            border-top:
-                1px solid var(--border);
-
-            padding-top:
-                18px;
-
-            color:
-                var(--muted);
-
-            font-size:
-                12px;
-
-            text-align:
-                center;
-
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 12px;
+            color: #64748b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
-
-        /* =========================================
-           Toast
-        ========================================= */
-
+        /* Toast */
         #toast {
-
-            position:
-                fixed;
-
-            bottom:
-                25px;
-
-            left:
-                50%;
-
-            transform:
-                translateX(-50%)
-                translateY(20px);
-
-            background:
-                #1f2937;
-
-            color:
-                white;
-
-            padding:
-                12px 18px;
-
-            border-radius:
-                6px;
-
-            font-size:
-                13px;
-
-            opacity:
-                0;
-
-            pointer-events:
-                none;
-
-            transition:
-                opacity 0.2s ease,
-                transform 0.2s ease;
-
-            z-index:
-                9999;
-
+            visibility: hidden;
+            min-width: 260px;
+            background: #0f172a;
+            color: #ffffff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 12px 18px;
+            position: fixed;
+            z-index: 10000;
+            bottom: 24px;
+            right: 24px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+            border: 1px solid #334155;
+            opacity: 0;
+            transition: opacity 0.25s, bottom 0.25s;
         }
-
 
         #toast.show {
-
-            opacity:
-                1;
-
-            transform:
-                translateX(-50%)
-                translateY(0);
-
+            visibility: visible;
+            opacity: 1;
+            bottom: 30px;
         }
-
-
-        /* =========================================
-           Responsive
-        ========================================= */
-
-        @media (max-width: 850px) {
-
-            .header-row {
-
-                flex-direction:
-                    column;
-
-                align-items:
-                    flex-start;
-
-            }
-
-
-            .navigation {
-
-                width:
-                    100%;
-
-            }
-
-
-            .footer-grid {
-
-                grid-template-columns:
-                    repeat(2, 1fr);
-
-            }
-
-        }
-
-
-        @media (max-width: 700px) {
-
-            header {
-
-                padding:
-                    18px;
-
-            }
-
-
-            .brand h1 {
-
-                font-size:
-                    22px;
-
-            }
-
-
-            .container {
-
-                padding:
-                    20px 12px;
-
-            }
-
-
-            .section {
-
-                padding:
-                    18px;
-
-            }
-
-
-            .result-grid {
-
-                grid-template-columns:
-                    1fr;
-
-            }
-
-
-            .location-result {
-
-                grid-column:
-                    auto;
-
-            }
-
-
-            .footer-grid {
-
-                grid-template-columns:
-                    1fr;
-
-            }
-
-
-            #map {
-
-                height:
-                    400px;
-
-            }
-
-        }
-
     </style>
-
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
 </head>
 
-
 <body>
-
-
-    <!-- =========================================
-         Header
-    ========================================== -->
-
+    <!-- Header -->
     <header>
-
         <div class="header-content">
-
             <div class="header-row">
-
-
-                <div class="brand">
-
-                    <h1>
-                        Pothole Detection & Reporting
-                    </h1>
-
-                    <p>
-                        AI-powered road damage detection,
-                        severity scoring and geotagged reporting.
-                    </p>
-
-                </div>
-
+                <a class="brand" href="/">
+                    <div class="brand-crest">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1>Pothole Detection & Municipal Reporting</h1>
+                        <p>AI-Powered Road Hazard Inspection & Public Works Infrastructure</p>
+                    </div>
+                </a>
 
                 <nav class="navigation">
-
-                    <a
-                        class="nav-button"
-                        href="/"
-                        style="text-decoration: none;"
-                    >
-                        Home
-                    </a>
-
+                    <a class="nav-button" href="/">Home</a>
                     {% if current_user %}
-                    <a
-                        class="nav-button"
-                        href="/my-reports"
-                        style="text-decoration: none;"
-                    >
-                        My Reports
-                    </a>
-
+                    <a class="nav-button" href="/my-reports">My Reports</a>
                     {% if current_user.role == 'officer' %}
-                    <a
-                        class="nav-button"
-                        href="/municipal"
-                        style="text-decoration: none;"
-                    >
-                        Municipal Portal
-                    </a>
+                    <a class="nav-button" href="/municipal">Municipal Portal</a>
                     {% endif %}
-
-                    <span style="font-size: 13px; color: #d1d5db; padding: 0 4px;">{{ current_user.name }}</span>
-
-                    <a
-                        class="nav-button"
-                        href="/logout"
-                        style="text-decoration: none;"
-                    >
-                        Sign Out
-                    </a>
+                    <span class="user-chip">
+                        <span class="user-chip-dot"></span>
+                        {{ current_user.name }}
+                    </span>
+                    <a class="nav-button" href="/logout">Sign Out</a>
                     {% else %}
-                    <a
-                        class="nav-button"
-                        href="/login"
-                        style="text-decoration: none;"
-                    >
-                        Sign In
-                    </a>
-
-                    <a
-                        class="nav-button primary"
-                        href="/register"
-                        style="text-decoration: none;"
-                    >
-                        Sign Up
-                    </a>
-
-                    <a
-                        class="nav-button"
-                        href="/login?next=/municipal"
-                        style="text-decoration: none;"
-                    >
-                        Municipal Portal
-                    </a>
+                    <a class="nav-button" href="/login">Sign In</a>
+                    <a class="nav-button primary" href="/register">Sign Up</a>
+                    <a class="nav-button" href="/login?next=/municipal">Municipal Portal</a>
                     {% endif %}
-
-                    <button
-                        class="nav-button"
-                        id="themeButton"
-                        type="button"
-                        onclick="toggleDarkMode()"
-                    >
-                        🌙 Dark
-                    </button>
-
+                    <button class="nav-button" id="themeButton" type="button" onclick="toggleDarkMode()">Dark Mode</button>
                 </nav>
-
             </div>
-
         </div>
-
     </header>
 
-
     <main class="container">
-
-
-        <!-- =========================================
-             Reporting Section
-        ========================================== -->
-
-        <div class="section">
-
-            <h2>
-                Report Road Damage
-            </h2>
-
-            <p class="section-description">
-                Upload an image of a road to analyze it for potholes.
-            </p>
-
-
-            <div class="upload-area">
-
-                <p>
-                    Select a road image from your device.
-                </p>
-
-                <input
-                    type="file"
-                    id="imageInput"
-                    accept="image/*"
-                >
-
+        <!-- Reporting Workbench -->
+        <div class="section reporting-workbench">
+            <div class="section-header">
+                <h2>Report Road Damage</h2>
+                <p class="section-description">Upload a road surface photo and attach coordinates for automated damage assessment and municipal logging.</p>
             </div>
 
+            <div class="reporting-grid">
+                <!-- Left Panel: Image Upload -->
+                <div class="panel-column">
+                    <div class="panel-heading">1. Road Damage Photo</div>
 
-            <!-- Image Preview -->
+                    <div class="upload-area" id="uploadDropzone" onclick="document.getElementById('imageInput').click();">
+                        <svg class="upload-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                        <div class="upload-title">Choose image or drag and drop</div>
+                        <p>Select a clear photo of the asphalt damage or pothole</p>
+                        <label for="imageInput" class="upload-browse-btn" onclick="event.stopPropagation();">
+                            Browse Device Files
+                        </label>
+                        <input type="file" id="imageInput" accept="image/*" class="sr-file-input">
+                        <div class="upload-formats">Supported: JPG, PNG, WEBP &bull; Max size: 16 MB</div>
+                    </div>
 
-            <div
-                class="image-preview"
-                id="imagePreview"
-            >
-
-                <img
-                    id="previewImage"
-                    alt="Selected road image"
-                >
-
-                <div
-                    class="preview-name"
-                    id="previewName"
-                >
+                    <!-- Image Preview -->
+                    <div class="image-preview" id="imagePreview">
+                        <img id="previewImage" alt="Selected road image">
+                        <div class="preview-meta">
+                            <span class="preview-badge">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                File Selected
+                            </span>
+                            <div class="preview-name" id="previewName"></div>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Right Panel: Geolocation & Submission -->
+                <div class="panel-column">
+                    <div class="panel-heading">2. Geolocation & Dispatch</div>
+
+                    <div class="location-box">
+                        <div class="location-box-header">
+                            <h3>Inspection Geotag</h3>
+                            <span class="location-tag">Optional</span>
+                        </div>
+                        <p class="section-description">Attaching GPS coordinates enables automatic pin plotting on the municipal triage map.</p>
+
+                        <div class="location-actions">
+                            <button id="locationButton" class="secondary-button" type="button">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                    <circle cx="12" cy="10" r="3"/>
+                                </svg>
+                                Get My Location
+                            </button>
+
+                            <div id="locationStatus">
+                                Location not detected. (Click button above to attach GPS)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analyze-container">
+                        <button id="analyzeButton" class="primary-button" type="button">
+                            Analyze Image & Submit Report
+                        </button>
+                        <div class="analyze-note">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                            </svg>
+                            <span>Detections are processed via YOLO-assisted visual detection and routed to the municipal road maintenance queue.</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-
-            <!-- Location -->
-
-            <div class="location-box">
-
-                <h3>
-                    Report Location
-                </h3>
-
-                <p class="section-description">
-
-                    Your location can be attached to the report
-                    to help identify where the road damage was found.
-
-                </p>
-
-
-                <button
-                    id="locationButton"
-                    class="secondary-button"
-                    type="button"
-                >
-                    Get My Location
-                </button>
-
-
-                <p id="locationStatus">
-                    Location not detected.
-                </p>
-
-            </div>
-
-
-            <!-- Analyze -->
-
-            <div class="analyze-container">
-
-                <button
-                    id="analyzeButton"
-                    class="primary-button"
-                    type="button"
-                >
-                    Analyze Image
-                </button>
-
-            </div>
-
         </div>
 
+        <!-- Result -->
+        <div class="section" id="result"></div>
 
-        <!-- =========================================
-             Result
-        ========================================== -->
-
-        <div
-            class="section"
-            id="result"
-        >
-        </div>
-
-
-        <!-- =========================================
-             Map
-        ========================================== -->
-
+        <!-- Map Section -->
         <div class="section">
-
-            <h2>
-                Reported Potholes
-            </h2>
-
-            <p class="section-description">
-
-                Reported potholes are displayed according
-                to their recorded GPS locations and severity.
-
-            </p>
-
-
+            <div class="map-section-header">
+                <div>
+                    <h2>Public Road Hazard Map</h2>
+                    <p class="section-description">Reported potholes are displayed according to their recorded GPS locations and severity.</p>
+                </div>
+                <div class="live-badge">
+                    <span class="pulse-dot"></span>
+                    Live Municipal Triage
+                </div>
+            </div>
             <div id="map"></div>
-
         </div>
-
-
     </main>
 
-
-    <!-- =========================================
-         Footer
-    ========================================== -->
-
+    <!-- Footer -->
     <footer>
-
         <div class="footer-content">
-
             <div class="footer-grid">
-
-
                 <div class="footer-column">
-
-                    <h3>
-                        Pothole Detection & Reporting
-                    </h3>
-
-                    <p>
-                        An AI-powered system for detecting
-                        potholes, estimating severity and
-                        associating road damage with geographic
-                        locations.
-                    </p>
-
+                    <h3>Pothole Detection & Reporting</h3>
+                    <p>An AI-powered system for detecting potholes, estimating severity and associating road damage with geographic locations.</p>
                 </div>
 
-
                 <div class="footer-column">
-
-                    <h3>
-                        Information
-                    </h3>
-
-                    <button
-                        class="footer-link"
-                        onclick="showFooterMessage('About Us')"
-                    >
-                        About Us
-                    </button>
-
-                    <button
-                        class="footer-link"
-                        onclick="showFooterMessage('How It Works')"
-                    >
-                        How It Works
-                    </button>
-
-                    <button
-                        class="footer-link"
-                        onclick="showFooterMessage('Contact')"
-                    >
-                        Contact
-                    </button>
-
+                    <h3>Information</h3>
+                    <button class="footer-link" onclick="showFooterMessage('About Us')">About Us</button>
+                    <button class="footer-link" onclick="showFooterMessage('How It Works')">How It Works</button>
+                    <button class="footer-link" onclick="showFooterMessage('Contact')">Contact</button>
                 </div>
 
-
                 <div class="footer-column">
-
-                    <h3>
-                        Policies
-                    </h3>
-
-                    <button
-                        class="footer-link"
-                        onclick="showFooterMessage('Privacy')"
-                    >
-                        Privacy
-                    </button>
-
-                    <button
-                        class="footer-link"
-                        onclick="showFooterMessage('Terms')"
-                    >
-                        Terms of Use
-                    </button>
-
-                    <button
-                        class="footer-link"
-                        onclick="showFooterMessage('Accessibility')"
-                    >
-                        Accessibility
-                    </button>
-
+                    <h3>Policies</h3>
+                    <button class="footer-link" onclick="showFooterMessage('Privacy')">Privacy</button>
+                    <button class="footer-link" onclick="showFooterMessage('Terms')">Terms of Use</button>
+                    <button class="footer-link" onclick="showFooterMessage('Accessibility')">Accessibility</button>
                 </div>
 
-
                 <div class="footer-column">
-
-                    <h3>
-                        Technology
-                    </h3>
-
-                    <p>
-                        YOLO11<br>
-                        Flask<br>
-                        Python<br>
-                        SQLite<br>
-                        Leaflet<br>
-                        OpenStreetMap
-                    </p>
-
+                    <h3>Technology</h3>
+                    <p>YOLO11<br>Flask<br>Python<br>SQLite<br>Leaflet<br>OpenStreetMap</p>
                 </div>
-
             </div>
-
 
             <div class="footer-bottom">
-
-                Pothole Detection & Reporting · Project-1
-
-                <br><br>
-
-                Built using open-source technologies.
-                Map data © OpenStreetMap contributors.
-
+                <div>Pothole Detection & Reporting &bull; Project-1</div>
+                <div>Built using open-source technologies. Map data &copy; OpenStreetMap contributors.</div>
             </div>
-
         </div>
-
     </footer>
 
-
     <!-- Toast -->
-
     <div id="toast"></div>
 
-
-    <!-- Leaflet -->
+<!-- Leaflet -->
 
     <script
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
@@ -1730,7 +1217,7 @@
                 );
 
                 themeButton.textContent =
-                    "☀ Light";
+                    "Light Mode";
 
             }
 
@@ -1741,7 +1228,7 @@
                 );
 
                 themeButton.textContent =
-                    "🌙 Dark";
+                    "Dark Mode";
 
             }
 
@@ -1764,7 +1251,7 @@
                 );
 
                 themeButton.textContent =
-                    "☀ Light";
+                    "Light Mode";
 
             }
 
@@ -1776,7 +1263,7 @@
                 );
 
                 themeButton.textContent =
-                    "🌙 Dark";
+                    "Dark Mode";
 
             }
 
@@ -2445,11 +1932,11 @@
                         Severity
                     </div>
 
-                    <div>🔴 HIGH</div>
+                    <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#b91c1c;margin-right:6px;vertical-align:middle;"></span> HIGH</div>
 
-                    <div>🟠 MEDIUM</div>
+                    <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#d97706;margin-right:6px;vertical-align:middle;"></span> MEDIUM</div>
 
-                    <div>🟢 LOW</div>
+                    <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#15803d;margin-right:6px;vertical-align:middle;"></span> LOW</div>
 
                 `;
 

@@ -7,28 +7,38 @@
     <style>
         * { box-sizing: border-box; }
         :root {
-            --background: #f4f6f8;
+            --background: #f1f5f9;
             --surface: #ffffff;
-            --text: #212529;
-            --heading: #111827;
-            --muted: #667085;
-            --border: #dfe3e8;
-            --button: #1f2937;
-            --button-hover: #111827;
-            --danger-bg: #f8d7da;
-            --danger-text: #842029;
-            --success-bg: #d1e7dd;
-            --success-text: #0f5132;
+            --surface-secondary: #f8fafc;
+            --text: #0f172a;
+            --heading: #0f172a;
+            --muted: #475569;
+            --border: #cbd5e1;
+            --button: #0f172a;
+            --button-hover: #1e293b;
+            --focus: #0284c7;
+            --focus-ring: rgba(2, 132, 199, 0.25);
+            --danger-bg: #fee2e2;
+            --danger-text: #991b1b;
+            --success-bg: #dcfce7;
+            --success-text: #166534;
         }
         body.dark-mode {
-            --background: #111827;
-            --surface: #1f2937;
-            --text: #e5e7eb;
-            --heading: #f9fafb;
-            --muted: #a7b0bd;
-            --border: #374151;
-            --button: #3b82f6;
-            --button-hover: #2563eb;
+            --background: #0b1120;
+            --surface: #131c2e;
+            --surface-secondary: #1a263d;
+            --text: #f1f5f9;
+            --heading: #f8fafc;
+            --muted: #94a3b8;
+            --border: #2d3b55;
+            --button: #e2e8f0;
+            --button-hover: #ffffff;
+            --focus: #38bdf8;
+            --focus-ring: rgba(56, 189, 248, 0.3);
+            --danger-bg: #450a0a;
+            --danger-text: #fca5a5;
+            --success-bg: #052e16;
+            --success-text: #86efac;
         }
         body {
             margin: 0;
@@ -101,8 +111,8 @@
             transition: border-color 0.15s;
         }
         .form-group input:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+            border-color: var(--focus);
+            box-shadow: 0 0 0 3px var(--focus-ring);
         }
         .btn-submit {
             width: 100%;
@@ -111,14 +121,21 @@
             font-weight: 600;
             color: #ffffff;
             background: var(--button);
-            border: none;
+            border: 1px solid var(--border);
             border-radius: 6px;
             cursor: pointer;
-            transition: background 0.15s;
+            transition: background 0.15s, border-color 0.15s;
             margin-top: 6px;
+        }
+        body.dark-mode .btn-submit {
+            color: #0f172a;
         }
         .btn-submit:hover {
             background: var(--button-hover);
+        }
+        .btn-submit:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring);
         }
         .auth-footer {
             margin-top: 24px;
@@ -127,7 +144,7 @@
             color: var(--muted);
         }
         .auth-footer a {
-            color: #2563eb;
+            color: #0284c7;
             text-decoration: none;
             font-weight: 500;
         }
@@ -180,5 +197,13 @@
         </div>
         <a href="/" class="back-link">← Return to Home</a>
     </div>
+
+    <script>
+        (function() {
+            if (localStorage.getItem("potholeTheme") === "dark") {
+                document.body.classList.add("dark-mode");
+            }
+        })();
+    </script>
 </body>
 </html>

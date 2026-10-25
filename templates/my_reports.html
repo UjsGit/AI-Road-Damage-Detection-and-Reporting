@@ -11,37 +11,85 @@
         }
 
         :root {
-            --background: #f4f6f8;
+            --background: #f1f5f9;
             --surface: #ffffff;
-            --surface-secondary: #fafbfc;
-            --text: #212529;
-            --heading: #111827;
-            --muted: #667085;
-            --border: #dfe3e8;
-            --header: #1f2937;
+            --surface-secondary: #f8fafc;
+            --text: #0f172a;
+            --heading: #0f172a;
+            --muted: #475569;
+            --border: #cbd5e1;
+            --header: #0f172a;
             --header-text: #ffffff;
-            --button: #1f2937;
-            --button-hover: #111827;
-            --success: #198754;
-            --high-bg: #f8d7da;
-            --high-text: #842029;
-            --medium-bg: #fff3cd;
-            --medium-text: #664d03;
-            --low-bg: #d1e7dd;
-            --low-text: #0f5132;
+            --button: #0f172a;
+            --button-hover: #1e293b;
+            --focus: #0284c7;
+            --focus-ring: rgba(2, 132, 199, 0.25);
+            --success: #15803d;
+
+            /* Severity (Hazard Urgency) */
+            --high-bg: #fee2e2;
+            --high-text: #991b1b;
+            --high-border: #f87171;
+
+            --medium-bg: #fef3c7;
+            --medium-text: #92400e;
+            --medium-border: #fcd34d;
+
+            --low-bg: #e2e8f0;
+            --low-text: #334155;
+            --low-border: #94a3b8;
+
+            /* Report Status (Workflow Stage) */
+            --status-open-bg: #eff6ff;
+            --status-open-text: #1e40af;
+            --status-open-border: #93c5fd;
+
+            --status-prog-bg: #fffbeb;
+            --status-prog-text: #b45309;
+            --status-prog-border: #fde68a;
+
+            --status-res-bg: #dcfce7;
+            --status-res-text: #166534;
+            --status-res-border: #86efac;
         }
 
         body.dark-mode {
-            --background: #111827;
-            --surface: #1f2937;
-            --surface-secondary: #18212f;
-            --text: #e5e7eb;
-            --heading: #f9fafb;
-            --muted: #a7b0bd;
-            --border: #374151;
-            --header: #0f172a;
-            --button: #e5e7eb;
+            --background: #0b1120;
+            --surface: #131c2e;
+            --surface-secondary: #1a263d;
+            --text: #f1f5f9;
+            --heading: #f8fafc;
+            --muted: #94a3b8;
+            --border: #2d3b55;
+            --header: #070d18;
+            --button: #e2e8f0;
             --button-hover: #ffffff;
+            --focus: #38bdf8;
+            --focus-ring: rgba(56, 189, 248, 0.3);
+
+            --high-bg: #450a0a;
+            --high-text: #fca5a5;
+            --high-border: #991b1b;
+
+            --medium-bg: #451a03;
+            --medium-text: #fde68a;
+            --medium-border: #78350f;
+
+            --low-bg: #1e293b;
+            --low-text: #cbd5e1;
+            --low-border: #475569;
+
+            --status-open-bg: #172554;
+            --status-open-text: #93c5fd;
+            --status-open-border: #1e40af;
+
+            --status-prog-bg: #422006;
+            --status-prog-text: #fde047;
+            --status-prog-border: #854d0e;
+
+            --status-res-bg: #052e16;
+            --status-res-text: #86efac;
+            --status-res-border: #166534;
         }
 
         body {
@@ -228,40 +276,51 @@
         }
 
         .badge {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 20px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            line-height: 1.3;
+            letter-spacing: 0.2px;
+            border: 1px solid transparent;
         }
 
         .badge-high {
             background: var(--high-bg);
             color: var(--high-text);
+            border-color: var(--high-border);
         }
 
         .badge-medium {
             background: var(--medium-bg);
             color: var(--medium-text);
+            border-color: var(--medium-border);
         }
 
         .badge-low {
             background: var(--low-bg);
             color: var(--low-text);
+            border-color: var(--low-border);
         }
 
         .badge-open {
-            background: #e0f2fe;
-            color: #0369a1;
+            background: var(--status-open-bg);
+            color: var(--status-open-text);
+            border-color: var(--status-open-border);
         }
 
         .badge-progress {
-            background: #fef3c7;
-            color: #b45309;
+            background: var(--status-prog-bg);
+            color: var(--status-prog-text);
+            border-color: var(--status-prog-border);
         }
 
         .badge-resolved {
-            background: #dcfce7;
-            color: #15803d;
+            background: var(--status-res-bg);
+            color: var(--status-res-text);
+            border-color: var(--status-res-border);
         }
 
         .report-info-row {
@@ -462,6 +521,14 @@
         </div>
         {% endif %}
     </main>
+
+    <script>
+        (function() {
+            if (localStorage.getItem("potholeTheme") === "dark") {
+                document.body.classList.add("dark-mode");
+            }
+        })();
+    </script>
 </body>
 
 </html>
