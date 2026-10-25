@@ -42,17 +42,20 @@ def create_database(db_path=DB_PATH):
             status TEXT DEFAULT 'Open',
             reported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             notes TEXT,
-            user_id INTEGER REFERENCES users(id)
+            user_id INTEGER REFERENCES users(id),
+            resolution_notified_at TIMESTAMP
         )
     """)
 
-    # Ensure location and user_id columns exist if table was created with an older schema
+    # Ensure location, user_id, and resolution_notified_at columns exist if table was created with an older schema
     cursor.execute("PRAGMA table_info(reports)")
     existing_columns = [column[1] for column in cursor.fetchall()]
     if "location" not in existing_columns:
         cursor.execute("ALTER TABLE reports ADD COLUMN location TEXT")
     if "user_id" not in existing_columns:
         cursor.execute("ALTER TABLE reports ADD COLUMN user_id INTEGER REFERENCES users(id)")
+    if "resolution_notified_at" not in existing_columns:
+        cursor.execute("ALTER TABLE reports ADD COLUMN resolution_notified_at TIMESTAMP")
 
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_reports_user_id ON reports(user_id)")
 

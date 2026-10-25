@@ -17,6 +17,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from ultralytics import YOLO
 
 from severity import calculate_severity
+from mailer import is_smtp_configured, send_resolution_email
 
 
 def load_env_file():
@@ -669,7 +670,8 @@ def get_reports():
                 pothole_count,
                 status,
                 reported_at,
-                user_id
+                user_id,
+                resolution_notified_at
             FROM reports
             ORDER BY reported_at DESC
         """)
@@ -690,7 +692,8 @@ def get_single_report(report_id):
             SELECT
                 id, image_path, latitude, longitude, location,
                 overall_severity_score, overall_severity_level,
-                pothole_count, status, reported_at, notes, user_id
+                pothole_count, status, reported_at, notes, user_id,
+                resolution_notified_at
             FROM reports
             WHERE id = ?
         """, (report_id,))
@@ -735,22 +738,74 @@ def update_report_status(report_id):
     conn = get_db()
     try:
         cursor = conn.cursor()
-        cursor.execute(
-            "UPDATE reports SET status = ? WHERE id = ?",
-            (new_status, report_id)
-        )
 
-        if cursor.rowcount == 0:
+        # Query existing report state and owner details
+        cursor.execute("""
+            SELECT
+                r.id, r.status, r.user_id, r.location, r.resolution_notified_at,
+                u.email, u.name
+            FROM reports r
+            LEFT JOIN users u ON r.user_id = u.id
+            WHERE r.id = ?
+        """, (report_id,))
+        report = cursor.fetchone()
+
+        if not report:
             return jsonify({
                 "error": "Report not found"
             }), 404
 
+        old_status = report["status"]
+
+        # Always update status in the database first
+        cursor.execute(
+            "UPDATE reports SET status = ? WHERE id = ?",
+            (new_status, report_id)
+        )
         conn.commit()
+
+        email_status = "not_applicable"
+        email_message = None
+
+        # Only trigger email on transition to Resolved
+        if new_status == "Resolved":
+            if report["resolution_notified_at"] is not None or old_status == "Resolved":
+                email_status = "already_notified"
+                email_message = "Report was already resolved/notified. Duplicate email prevented."
+            elif not report["user_id"] or not report["email"]:
+                email_status = "no_reporter"
+                email_message = "Report has no registered reporter (historical or unowned report). Notification not applicable."
+            elif not is_smtp_configured():
+                email_status = "not_configured"
+                email_message = "SMTP email service is not configured. Email notification skipped."
+            else:
+                success, err_msg = send_resolution_email(
+                    recipient_email=report["email"],
+                    recipient_name=report["name"],
+                    report_id=report_id,
+                    location=report["location"],
+                    notes="Repair work completed and verified."
+                )
+                if success:
+                    cursor.execute(
+                        "UPDATE reports SET resolution_notified_at = CURRENT_TIMESTAMP WHERE id = ?",
+                        (report_id,)
+                    )
+                    conn.commit()
+                    email_status = "sent"
+                    email_message = "Resolution email accepted by mail server for delivery."
+                else:
+                    # Leave resolution_notified_at NULL so later deliberate retry can work
+                    app.logger.warning("Failed to send resolution email for report #%s: %s", report_id, err_msg)
+                    email_status = "failed"
+                    email_message = "Status updated to Resolved, but email delivery failed due to mail server error."
 
         return jsonify({
             "message": "Report status updated successfully",
             "report_id": report_id,
-            "status": new_status
+            "status": new_status,
+            "email_status": email_status,
+            "email_message": email_message
         })
     except Exception:
         conn.rollback()
@@ -758,6 +813,89 @@ def update_report_status(report_id):
         return jsonify({
             "error": "Failed to update report status"
         }), 500
+    finally:
+        conn.close()
+
+
+@app.route("/reports/<int:report_id>/notify-reporter", methods=["POST"])
+@officer_required
+def notify_reporter_manual(report_id):
+    """
+    Explicit manual action for an authorized officer to notify the reporter
+    of a Resolved report (e.g. if SMTP was previously unconfigured or failed).
+    Never bypasses the duplicate guard or ownership checks.
+    """
+    conn = get_db()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT
+                r.id, r.status, r.user_id, r.location, r.resolution_notified_at,
+                u.email, u.name
+            FROM reports r
+            LEFT JOIN users u ON r.user_id = u.id
+            WHERE r.id = ?
+        """, (report_id,))
+        report = cursor.fetchone()
+
+        if not report:
+            return jsonify({"error": "Report not found"}), 404
+
+        if report["status"] != "Resolved":
+            return jsonify({
+                "error": "Report is not marked as Resolved. Only resolved reports can be notified.",
+                "email_status": "not_resolved"
+            }), 400
+
+        if report["resolution_notified_at"] is not None:
+            return jsonify({
+                "error": "Resolution notification has already been successfully sent for this report.",
+                "email_status": "already_notified"
+            }), 400
+
+        if not report["user_id"] or not report["email"]:
+            return jsonify({
+                "error": "Report has no registered reporter account.",
+                "email_status": "no_reporter"
+            }), 400
+
+        if not is_smtp_configured():
+            return jsonify({
+                "error": "SMTP email service is not configured on the server.",
+                "email_status": "not_configured"
+            }), 503
+
+        success, err_msg = send_resolution_email(
+            recipient_email=report["email"],
+            recipient_name=report["name"],
+            report_id=report_id,
+            location=report["location"],
+            notes="Repair work completed and verified."
+        )
+
+        if success:
+            cursor.execute(
+                "UPDATE reports SET resolution_notified_at = CURRENT_TIMESTAMP WHERE id = ?",
+                (report_id,)
+            )
+            conn.commit()
+            return jsonify({
+                "message": "Resolution notification email accepted by mail server.",
+                "report_id": report_id,
+                "email_status": "sent"
+            }), 200
+        else:
+            app.logger.warning("Manual retry email failed for report #%s: %s", report_id, err_msg)
+            return jsonify({
+                "error": "Failed to send notification email via SMTP.",
+                "report_id": report_id,
+                "email_status": "failed"
+            }), 502
+
+    except Exception:
+        conn.rollback()
+        app.logger.exception("Failed in manual notify reporter")
+        return jsonify({"error": "Server error processing notification"}), 500
     finally:
         conn.close()
 
