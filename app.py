@@ -96,6 +96,14 @@ REPAIR_FOLDER.mkdir(parents=True, exist_ok=True)
 # Ensure database tables and schema are initialized at startup
 create_database(DB_PATH)
 
+# Optionally provision an initial municipal officer from environment variables
+officer_email = os.environ.get("OFFICER_EMAIL", "").strip()
+officer_password = os.environ.get("OFFICER_PASSWORD", "").strip()
+officer_name = os.environ.get("OFFICER_NAME", "").strip() or "Municipal Officer"
+if officer_email and officer_password:
+    from create_officer import create_officer
+    create_officer(officer_email, officer_name, officer_password, db_path=DB_PATH)
+
 EMAIL_REGEX = re.compile(r"^[\w\.-]+@[\w\.-]+\.\w+$")
 
 
