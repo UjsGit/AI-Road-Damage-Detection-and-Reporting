@@ -78,24 +78,6 @@ Reports can be reviewed through the municipal interface, where authorized users 
 
 The project uses **YOLO**, the nano variant of the YOLOv11 object detection model, as its lightweight detection architecture.
 
-| Class ID | Damage category | Description |
-|---|---|---|
-| 0 | Longitudinal Crack | Crack running primarily along the direction of the road |
-| 1 | Transverse Crack | Crack running primarily across the direction of the road |
-| 2 | Alligator Crack | Interconnected cracking that resembles a network of polygons |
-| 3 | Pothole | Localized depression or cavity in the road surface |
-
-### Dataset preparation
-
-The primary dataset is **RDD2022 India**, with selected original damage labels mapped into the four project classes:
-
-| Original RDD label | Project class |
-|---|---|
-| D00, D01 | Longitudinal Crack |
-| D10, D11 | Transverse Crack |
-| D20 | Alligator Crack |
-| D40 | Pothole |
-
 Other original RDD2022 damage categories are excluded from this four-class experiment.
 
 The project also considers the IIT Madras Pothole Detection dataset for a second experiment. Its crocodile-crack, longitudinal-crack, and pothole annotations can be mapped to the corresponding project classes. This dataset does not provide a transverse-crack class.
@@ -132,6 +114,9 @@ These metrics help evaluate detection quality and compare the experiments. The f
 ## Application Architecture
 
 The system is organized into the following logical components:
+
+<img width="990" height="1121" alt="image" src="https://github.com/user-attachments/assets/d9779838-2520-4bc8-82a2-4e1867e112ed" />
+
 
 - **Detection layer:** Loads the trained model and performs object detection.
 - **Severity layer:** Converts detection information into a heuristic severity estimate.
