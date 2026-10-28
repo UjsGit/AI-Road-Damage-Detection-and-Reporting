@@ -32,7 +32,7 @@ Road Image
 Image Upload
     |
     v
-Trained YOLOv11 Model
+Trained YOLO Model
     |
     v
 Damage Class + Bounding Box + Confidence
@@ -56,7 +56,7 @@ and Reporter Notification
 
 ### 1. Image processing and detection
 
-The uploaded image is passed to the trained YOLOv11 model. The model predicts the location of detected damage, its class, and a confidence score.
+The uploaded image is passed to the trained YOLO model. The model predicts the location of detected damage, its class, and a confidence score.
 
 The confidence score represents the model's confidence in a prediction; it is not a measurement of how dangerous the damage is.
 
@@ -76,7 +76,7 @@ Reports can be reviewed through the municipal interface, where authorized users 
 
 ## AI Model and Damage Classes
 
-The project uses **YOLOv11n**, the nano variant of the YOLOv11 object detection model, as its lightweight detection architecture.
+The project uses **YOLO**, the nano variant of the YOLOv11 object detection model, as its lightweight detection architecture.
 
 | Class ID | Damage category | Description |
 |---|---|---|
