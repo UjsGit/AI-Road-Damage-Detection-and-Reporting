@@ -84,7 +84,7 @@ app.config.update(
 # Configuration
 # --------------------------------------------------
 
-MODEL_PATH = r"models\India_only_best.pt"
+MODEL_PATH = os.path.join("models", "India_only_best.pt")
 DB_PATH = "database.db"
 UPLOAD_FOLDER = Path("uploads")
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}

@@ -25,6 +25,7 @@ dataset/
 # Model weights
 models/*.pt
 *.pt
+!models/India_only_best.pt
 
 # Local test/demo images
 test_images/
