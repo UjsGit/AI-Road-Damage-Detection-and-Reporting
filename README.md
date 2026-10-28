@@ -104,13 +104,6 @@ Original datasets are preserved; conversions and combined datasets are created s
 
 ### Planned model comparison
 
-The experimental design compares two models:
-
-- **Model A:** Trained using the selected RDD2022 India training data.
-- **Model B:** Trained using a combined training dataset containing RDD2022 India and IIT Madras samples.
-
-Both models should be evaluated on the same untouched RDD2022 India test set to support a fair comparison.
-
 The intended evaluation metrics are:
 
 - Precision
