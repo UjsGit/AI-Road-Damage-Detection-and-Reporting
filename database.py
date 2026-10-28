@@ -1,16 +1,23 @@
+import os
 import sqlite3
+from pathlib import Path
 
 
-DB_PATH = "database.db"
+BASE_DIR = Path(__file__).resolve().parent
+DB_PATH = os.environ.get("DATABASE_PATH", str(BASE_DIR / "database.db"))
 
 
-def get_db_connection(db_path=DB_PATH):
+def get_db_connection(db_path=None):
+    if db_path is None:
+        db_path = DB_PATH
     conn = sqlite3.connect(db_path)
     conn.execute("PRAGMA foreign_keys = ON;")
     return conn
 
 
-def create_database(db_path=DB_PATH):
+def create_database(db_path=None):
+    if db_path is None:
+        db_path = DB_PATH
 
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()

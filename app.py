@@ -18,6 +18,7 @@ from ultralytics import YOLO
 
 from severity import calculate_severity
 from mailer import is_smtp_configured, send_resolution_email
+from database import DB_PATH, create_database
 
 
 def load_env_file():
@@ -85,18 +86,23 @@ app.config.update(
 # --------------------------------------------------
 
 MODEL_PATH = os.path.join("models", "India_only_best.pt")
-DB_PATH = "database.db"
+DB_PATH = os.environ.get("DATABASE_PATH", DB_PATH)
 UPLOAD_FOLDER = Path("uploads")
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
 REPAIR_FOLDER = UPLOAD_FOLDER / "repair"
 REPAIR_FOLDER.mkdir(parents=True, exist_ok=True)
 
+# Ensure database tables and schema are initialized at startup
+create_database(DB_PATH)
+
 EMAIL_REGEX = re.compile(r"^[\w\.-]+@[\w\.-]+\.\w+$")
 
 
 def get_db():
     db_path = app.config.get("DATABASE", DB_PATH)
+    if not os.path.exists(db_path) or os.path.getsize(db_path) == 0:
+        create_database(db_path)
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON;")
