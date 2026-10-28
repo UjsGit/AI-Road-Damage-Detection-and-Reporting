@@ -115,7 +115,7 @@ These metrics help evaluate detection quality and compare the experiments. The f
 
 The system is organized into the following logical components:
 
-<img width="990" height="1121" alt="image" src="https://github.com/user-attachments/assets/d9779838-2520-4bc8-82a2-4e1867e112ed" />
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/d9779838-2520-4bc8-82a2-4e1867e112ed" />
 
 
 - **Detection layer:** Loads the trained model and performs object detection.
